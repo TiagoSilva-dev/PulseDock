@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>en</string>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>en</string>
+		<string>pt-BR</string>
+	</array>
+	<key>CFBundleDisplayName</key>
+	<string>PulseDock</string>
+	<key>CFBundleName</key>
+	<string>PulseDock</string>
+	<key>CFBundleExecutable</key>
+	<string>PulseDock</string>
+	<key>CFBundleIdentifier</key>
+	<string>__BUNDLE_ID__</string>
+	<key>CFBundleIconFile</key>
+	<string>AppIcon</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>__VERSION__</string>
+	<key>CFBundleVersion</key>
+	<string>__BUILD__</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>15.0</string>
+	<key>LSUIElement</key>
+	<true/>
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.developer-tools</string>
+	<key>NSHighResolutionCapable</key>
+	<true/>
+	<key>NSPrincipalClass</key>
+	<string>NSApplication</string>
+	<key>NSSupportsAutomaticTermination</key>
+	<false/>
+	<key>NSSupportsSuddenTermination</key>
+	<false/>
+	<key>NSHumanReadableCopyright</key>
+	<string>© 2026 PulseDock</string>
+	<key>NSAppleEventsUsageDescription</key>
+	<string>PulseDock uses Apple Events only after you ask it to: to select the exact Terminal or iTerm tab of an agent session, to show and control what Music or Spotify is playing, to set the macOS Dock to auto-hide in Replacement Mode, and to empty the Trash through Finder.</string>
+</dict>
+</plist>

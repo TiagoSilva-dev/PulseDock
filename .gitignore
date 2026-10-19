@@ -1,0 +1,19 @@
+# Build products
+.build/
+build/
+*.xcarchive
+DerivedData/
+
+# Local agent configuration — may contain credentials (never commit)
+.claude/settings.local.json
+.claude/*.local.*
+.env
+.env.*
+
+# macOS
+.DS_Store
+
+# Editors
+.vscode/
+.idea/
+*.swp

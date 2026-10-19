@@ -1,0 +1,3 @@
+import PulseDockApp
+
+PulseDockApplication.run()

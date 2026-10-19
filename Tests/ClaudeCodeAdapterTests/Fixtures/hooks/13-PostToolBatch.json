@@ -1,0 +1,26 @@
+{
+  "session_id": "abc123",
+  "transcript_path": "/Users/dev/.claude/projects/-Users-dev-shop/00893aaf-19fa-41d2-8238-13269b9b3ca0.jsonl",
+  "cwd": "/Users/dev/shop",
+  "hook_event_name": "PostToolBatch",
+  "prompt_id": "550e8400-e29b-41d4-a716-446655440000",
+  "permission_mode": "default",
+  "tool_calls": [
+    {
+      "tool_name": "Read",
+      "tool_input": {
+        "file_path": "/Users/dev/shop/ledger/accounts.py"
+      },
+      "tool_use_id": "toolu_01",
+      "tool_response": "1\tfrom __future__ import annotations SECRET_BATCH"
+    },
+    {
+      "tool_name": "Read",
+      "tool_input": {
+        "file_path": "/Users/dev/shop/ledger/transactions.py"
+      },
+      "tool_use_id": "toolu_02",
+      "tool_response": "1\tfrom __future__ import annotations"
+    }
+  ]
+}

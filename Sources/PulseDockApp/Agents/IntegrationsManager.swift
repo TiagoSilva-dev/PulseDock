@@ -24,6 +24,8 @@ final class IntegrationsManager {
 
     private(set) var claude: ClaudeCodeInstallation?
     private(set) var claudeStatus: ClaudeCodeHookInstaller.Status = .notInstalled
+    /// PulseDock's status line (the source of the Claude Usage widget).
+    private(set) var claudeStatusLine: ClaudeStatusLineInstaller.Status = .notInstalled(hasOwn: false)
     private(set) var codex: CodexInstallation?
     private(set) var codexHookEvents: [String] = []
     private(set) var codexNotifyInstalled = false
@@ -39,6 +41,10 @@ final class IntegrationsManager {
 
     var claudeInstaller: ClaudeCodeHookInstaller {
         ClaudeCodeHookInstaller(settingsURL: claude?.settingsURL ?? ClaudeCodeDetector.defaultSettingsURL)
+    }
+
+    var statusLineInstaller: ClaudeStatusLineInstaller {
+        ClaudeStatusLineInstaller(settingsURL: claude?.settingsURL ?? ClaudeCodeDetector.defaultSettingsURL)
     }
 
     var codexHookInstaller: CodexHookInstaller {
@@ -59,6 +65,7 @@ final class IntegrationsManager {
         self.claude = claude
         self.codex = codex
         claudeStatus = claudeInstaller.status(version: claude.version)
+        claudeStatusLine = statusLineInstaller.status()
         codexHookEvents = codexHookInstaller.installedEvents()
         codexNotifyInstalled = codexNotifyInstaller.isInstalled()
     }
@@ -104,6 +111,22 @@ final class IntegrationsManager {
         return backup
     }
 
+    func planStatusLineInstall() throws -> ClaudeStatusLineInstaller.Plan {
+        bridge.deployHelper()
+        return try statusLineInstaller.planInstall()
+    }
+
+    func planStatusLineUninstall() throws -> ClaudeStatusLineInstaller.Plan {
+        try statusLineInstaller.planUninstall()
+    }
+
+    @discardableResult
+    func applyStatusLine(_ plan: ClaudeStatusLineInstaller.Plan) async throws -> URL? {
+        let backup = try statusLineInstaller.apply(plan)
+        await refresh()
+        return backup
+    }
+
     func planCodexHooksInstall() throws -> ConfigChangePlan {
         bridge.deployHelper()
         return try codexHookInstaller.planInstall()
@@ -139,6 +162,7 @@ final class IntegrationsManager {
     func uninstallEverything() async -> [String] {
         var errors: [String] = []
         do { try claudeInstaller.apply(try claudeInstaller.planUninstall()) } catch { errors.append("Claude Code: \(error.localizedDescription)") }
+        do { try statusLineInstaller.apply(try statusLineInstaller.planUninstall()) } catch { errors.append("Claude Code status line: \(error.localizedDescription)") }
         do { try codexHookInstaller.apply(try codexHookInstaller.planUninstall()) } catch { errors.append("Codex hooks: \(error.localizedDescription)") }
         if codexNotifyInstalled {
             do { try await uninstallCodexNotify() } catch { errors.append("Codex notify: \(error.localizedDescription)") }

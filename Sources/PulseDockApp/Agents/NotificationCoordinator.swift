@@ -61,6 +61,29 @@ final class NotificationCoordinator: NSObject, UNUserNotificationCenterDelegate 
         }
     }
 
+    /// Claude usage limit crossing 80% or 95% (once per window, decided by the ledger).
+    func postUsageAlert(_ alert: UsageAlert) {
+        let preferences = settings.settings.notifications
+        guard Self.isAvailable, preferences.enabled, preferences.usageLimits, !isQuietTime(preferences) else { return }
+        let content = UNMutableNotificationContent()
+        let percent = Formatting.percent(alert.usedPercent / 100)
+        switch alert.window {
+        case .fiveHour: content.title = tr("notification.usage.fiveHour", "Claude · 5-hour limit at %@", percent)
+        case .sevenDay: content.title = tr("notification.usage.sevenDay", "Claude · weekly limit at %@", percent)
+        case .spend: content.title = tr("notification.usage.spend", "Claude · spend limit at %@", percent)
+        }
+        if let reset = alert.resetsAt {
+            content.body = tr("notification.usage.resets", "Resets %@.", Formatting.reset(reset))
+        }
+        content.interruptionLevel = alert.threshold >= 95 ? .timeSensitive : .active
+        if preferences.playSound { content.sound = .default }
+        content.threadIdentifier = "pulsedock.usage"
+        Task { @MainActor in
+            guard await authorize() else { return }
+            try? await UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: "pulsedock.usage.\(alert.window.rawValue)", content: content, trigger: nil))
+        }
+    }
+
     private func isQuietTime(_ preferences: NotificationSettings) -> Bool {
         guard preferences.quietHoursEnabled else { return false }
         let components = Calendar.current.dateComponents([.hour, .minute], from: Date())

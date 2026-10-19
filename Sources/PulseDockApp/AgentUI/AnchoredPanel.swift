@@ -42,7 +42,16 @@ final class AnchoredPanel: NSPanel {
         origin.y = min(origin.y, bounds.maxY - size.height - 8)
         setFrame(CGRect(origin: origin, size: size).integral, display: true)
         orderFrontRegardless()
-        if allowsKey { makeKey() }
+        if allowsKey {
+            makeKey()
+            // No text field is focused on open: a focused field invites macOS AutoFill to show
+            // suggestions (such as verification codes from Messages) over the panel. The user
+            // clicks the field to type.
+            makeFirstResponder(nil)
+            DispatchQueue.main.async { [weak self] in
+                MainActor.assumeIsolated { _ = self?.makeFirstResponder(nil) }
+            }
+        }
         installMonitors()
     }
 

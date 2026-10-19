@@ -1,6 +1,6 @@
 # Registro de status
 
-Atualizado em 2026-10-18, versão 0.1.0 (build de desenvolvimento).
+Atualizado em 2026-10-19, versão 0.1.0 (build de desenvolvimento).
 
 ## Funcionalidades concluídas (verificadas)
 
@@ -13,9 +13,17 @@ Atualizado em 2026-10-18, versão 0.1.0 (build de desenvolvimento).
 - **Aparência**: Pulse Glass (Liquid Glass no macOS 26+, `NSVisualEffectView` no 15), temas Native Glass,
   Midnight e Aurora, tamanho, espaçamento, transparência, borda, Reduzir Movimento, Reduzir Transparência,
   Aumentar Contraste, modo claro e escuro (revisados com capturas).
-- **Ambientes**: Desenvolvimento, Criativo, Pessoal e Foco, com fixados, tema, widgets e filtro de IA
-  próprios; nomes dos presets traduzidos até o usuário renomear; atalho ⌃⌥⌘W.
-- **Widgets**: Relógio, Saúde do Sistema, Tocando Agora (Música/Spotify), Quick Launch (coleções) e Agent Pulse.
+- **Ambientes**: Desenvolvimento (Apps, Terminal, VS Code, Claude + Saúde do Sistema e Tocando Agora),
+  Criativo, Pessoal (importado do Dock do macOS) e Foco, com fixados, tema, widgets e filtro de IA próprios;
+  "Restaurar padrão" por ambiente; divisória entre apps fixados e apenas abertos; nomes dos presets
+  traduzidos até o usuário renomear; atalho ⌃⌥⌘W.
+- **Widgets (28 tipos, ADR 0010)**: Relógio (fuso e analógico), Calendário, Timer, Cronômetro, Pomodoro,
+  Contagem regressiva, Progresso do tempo, Lembretes, Nota, Atalhos, Água, Quick Launch, Downloads/pasta,
+  Prateleira, AirDrop, Capturas de tela, Área de transferência, Conta-gotas, Emoji, Conversor, Saúde do
+  Sistema, Rede, Bateria, Clima, Tocando Agora e os originais **Dock Cinema** (YouTube com pausa automática
+  quando um agente precisa de você e, opcionalmente, o vídeo aberto no Safari/Chrome), **Agent Heartbeat** (ECG dos agentes + Radar de Testes), **Pulse
+  Buddy** e **Uso do Claude** (limites de 5 h e semanal, renovação, projeção, custo do dia, contexto por
+  sessão, avisos em 80%/95%, pela status line oficial). Menus "Adicionar widget" por categoria; o dock encolhe os ícones para caber na tela.
 - **Agentes**: modelo universal de eventos, máquina de estados por evidência, staleness, liveness, prioridade,
   ilha (5 modos), Quick Peek, Agent Card, AI Mission Control, notificações agrupadas com horário de
   silêncio, Smart Return (aba exata do Terminal/iTerm2), Privacy Mode (⌃⌥⌘P), modo Demo.
@@ -44,10 +52,21 @@ Atualizado em 2026-10-18, versão 0.1.0 (build de desenvolvimento).
 | Testes de snapshot das views | a implementar |
 | Relatório de falhas local e opcional | a implementar |
 | Revisão do material do macOS 15 | máquina com macOS 15 (ou o alternador de compatibilidade) |
+| Downloads e Capturas de tela revisados ao vivo | primeiro uso dispara pedido de acesso a pastas (fazer com o usuário) |
+| Calendário e Lembretes com dados reais | conceder acesso ao EventKit |
+| Detecção do vídeo do navegador com abas reais | o usuário clicar em "Detectar" e permitir a Automação (scripts já compilam contra os dicionários reais do Safari e do Chrome) |
+| Testes automatizados do `AppSettings` (decodificação tolerante de widgets) | target de testes do app a criar |
 
 ## Testes executados
 
-- `swift test`: **66/66** aprovados (10 suítes). Detalhes em `docs/testing.md`.
+- `swift test`: **92/92** aprovados (14 suítes).
+- Uso do Claude (2026-10-19), **ao vivo** com esta sessão do Claude Code 2.1.302 após conectar a status line
+  (com consentimento, backup em `backups/claude-settings-20261019-160736.json`): limites reais de 5 h (6%,
+  renovação 20:50) e semanal (46%, quarta 18:00), contexto da sessão e custo. Projeção, avisos 80/95% e
+  encadeamento de status line existente validados por testes (sem dados reais nesses casos). Detalhes em `docs/testing.md`.
+- Widgets (2026-10-19): revisão visual ao vivo de 24 dos 28 tipos (escuro e claro), Dock Cinema tocando um
+  vídeo real e **pausando sozinho num pedido de aprovação**; benchmark com os widgets novos: 64 ms, 0,14% de
+  CPU ociosa, 39 MB.
 - Integração real com o Claude Code 2.1.302 (hooks globais): ver `docs/integrations/claude-code.md` §6.
 - Benchmark de release: abertura em 85 ms, 0,15 % de CPU ociosa, 44 MB de memória e 23 µs por evento.
 - Revisão visual com capturas reais (escuro/claro, pt-BR/inglês), com os problemas encontrados corrigidos (lista em `docs/testing.md` §3).

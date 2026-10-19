@@ -53,6 +53,8 @@ URLs and messages".
 | `…/PulseDock/run/` (`0700`) | socket (`0600`), spool de eventos sanitizados (`0600`, ≤ 4 MiB), log de erros do helper (sem conteúdo de sessão) |
 | `…/PulseDock/backups/` | cópias dos arquivos de configuração dos agentes feitas antes de cada mudança |
 | `…/PulseDock/bin/pulsedock-hook` | cópia estável do helper |
+| `…/PulseDock/claude-statusline-chain.json` (`0600`) | só se você já tinha uma status line: o objeto dela, para continuar rodando e ser restaurado |
+| tabela `settings` (chave `widgets.data.v1`) | Uso do Claude: percentuais e renovação dos limites, custo estimado e linhas por dia (35 dias), último snapshot por sessão (1 dia). Só números, modelo e pasta do projeto |
 
 Controles em Ajustes › Privacidade:
 
@@ -83,15 +85,30 @@ Todas são opcionais, pedidas **no contexto** em que são necessárias, e com de
 | Automação → Finder | "Esvaziar Lixo…" | esvaziar pelo Finder | — |
 | Notificações | primeira vez que algo merece notificar | aprovações, perguntas, falhas | a ilha continua destacando |
 | Itens de Início | "Abrir o PulseDock ao iniciar a sessão" | `SMAppService` | — |
+| Calendários / Lembretes | "Permitir…" no painel do widget Calendário ou Lembretes | mostrar eventos (com botão de chamada) e concluir lembretes | o widget explica e mostra só a data |
+| Pastas (Downloads, Mesa, Documentos) | primeira abertura do widget Downloads/Capturas de tela | listar os itens mais recentes | o widget explica como permitir |
+| Automação de navegadores (Safari, Chrome…) | "Detectar" no painel do Dock Cinema | mostrar o vídeo do YouTube aberto numa aba; o script devolve só abas do YouTube (endereço e título), nada é gravado | o painel explica e oferece abrir Ajustes |
+| Colar de Outros Apps (macOS 15.4+) | "Começar a Registrar…" no widget Área de transferência | registrar o histórico sem alertas (requer "Permitir Sempre") | nada é registrado |
 
-O PulseDock **não** usa Gravação de Tela, Monitoramento de Entrada, Acesso Total ao Disco nem APIs privadas.
+O PulseDock **não** usa Gravação de Tela, Monitoramento de Entrada, Acesso Total ao Disco, localização nem APIs
+privadas.
+
+### 4.1 Widgets que acessam a internet (só depois de uma ação do usuário)
+
+| Widget | Destino | O que é enviado |
+| --- | --- | --- |
+| Clima | `geocoding-api.open-meteo.com`, `api.open-meteo.com` | o nome digitado na busca; depois, as coordenadas da cidade escolhida (a cada 30 min com o widget visível) |
+| Dock Cinema | `youtube-nocookie.com`, `youtube.com/oembed`, `i.ytimg.com` | o vídeo que o usuário adicionou; player em modo de privacidade aprimorada, sem cookies persistentes (`WKWebsiteDataStore.nonPersistent`) |
+
+Os demais widgets são locais. A Área de transferência guarda o histórico **só na memória** (textos fixados
+são a exceção) e ignora itens marcados como ocultos ou transitórios por gerenciadores de senha.
 O desfoque do vidro é do próprio sistema, sem captura de tela.
 
 ## 5. Arquivos de terceiros que o PulseDock lê ou escreve
 
 | Arquivo | Leitura | Escrita |
 | --- | --- | --- |
-| `~/.claude/settings.json` | para mostrar a prévia | só com consentimento: mescla/remove **apenas** handlers do PulseDock, com backup |
+| `~/.claude/settings.json` | para mostrar a prévia | só com consentimento: mescla/remove **apenas** handlers do PulseDock e, se você conectar o Uso do Claude, a chave `statusLine` (a sua é preservada e restaurada), com backup |
 | `~/.claude/sessions/<pid>.json` | opcional, descoberta de sessões (processo, pasta, nome); arquivos `.key` nunca são abertos | nunca |
 | `~/.codex/hooks.json`, `~/.codex/config.toml` | para mostrar a prévia | só com consentimento, com backup |
 | Preferências do Dock (`com.apple.dock`) | importar apps fixados e detectar o auto-hide | só no Replacement Mode, com ponto de restauração |

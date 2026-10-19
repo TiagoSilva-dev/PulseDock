@@ -46,7 +46,7 @@ final class AppServices {
         notifications = NotificationCoordinator(settings: settings, store: agents)
         agentUI = AgentUIController(store: agents, settings: settings, integrations: integrations, managed: managedCodex,
                                     accessibility: accessibility, dockWindow: dockWindow)
-        widgets = WidgetController(settings: settings, accessibility: accessibility, dockWindow: dockWindow)
+        widgets = WidgetController(settings: settings, agents: agents, persistence: persistence, accessibility: accessibility, dockWindow: dockWindow)
     }
 
     func start() {
@@ -95,6 +95,8 @@ final class AppServices {
     }
 
     func systemWillSleep() {
+        widgets.claudeUsage.flush()
+        widgets.data.saveNow()
         settings.flush()
         persistence?.flush()
         DiagnosticsRecorder.shared.record(.info, "system", "will sleep: state saved")
@@ -112,6 +114,9 @@ final class AppServices {
         systemObservers.removeAll()
         managedCodex.stop()
         bridge.stop()
+        widgets.cinema.stop()
+        widgets.claudeUsage.flush()
+        widgets.data.saveNow()
         settings.flush()
         dockWindow.tearDown()
         persistence?.flush()
@@ -138,6 +143,8 @@ final class AppServices {
         dockController.onIslandClick = { [weak self] anchor in self?.agentUI.toggleCard(anchor: anchor) }
         dockController.onIslandHover = { [weak self] hovering, anchor in self?.agentUI.islandHover(hovering, anchor: anchor) }
         dockController.onWidgetClick = { [weak self] placement, anchor in self?.widgets.showPanel(for: placement, anchor: anchor) }
+        dockController.widgetAcceptsDrop = { [weak self] placement, pasteboard in self?.widgets.acceptsDrop(placement, pasteboard: pasteboard) ?? false }
+        dockController.widgetPerformDrop = { [weak self] placement, pasteboard in self?.widgets.performDrop(placement, pasteboard: pasteboard) ?? false }
         dockController.islandMenu = { [weak self] menu in self?.agentUI.buildIslandMenu(menu) }
         widgets.openSettings = { [weak self] in self?.openSettings(pane: .appearance) }
         dockModel.showsAgentPulse = settings.settings.agents.enabled && settings.activeWorkspace.agentFilter != .hidden
@@ -146,8 +153,10 @@ final class AppServices {
     private func wireAgents() {
         agents.onEvents = { [weak self] events in
             self?.notifications.handle(events)
+            self?.widgets.agentEvents(events)
         }
-        agents.onSummaryChange = { [weak self] _ in
+        agents.onSummaryChange = { [weak self] summary in
+            self?.widgets.agentSummaryChanged(summary)
             self?.agentUI.summaryChanged()
             self?.notifications.clearResolved()
             self?.windows.agentsChanged()
@@ -155,6 +164,15 @@ final class AppServices {
         notifications.onOpenSession = { [weak self] key in self?.agentUI.openSession(key) }
         agentUI.openMissionControl = { [weak self] key in self?.openMissionControl(focus: key) }
         agentUI.openAgentSettings = { [weak self] in self?.openSettings(pane: .agents) }
+        widgets.openSession = { [weak self] key in self?.agentUI.openSession(key) }
+        bridge.onUsage = { [weak self] snapshot in self?.widgets.claudeUsage.ingest(snapshot) }
+        widgets.claudeUsage.onAlert = { [weak self] alert in self?.notifications.postUsageAlert(alert) }
+        widgets.claudeUsage.connection = { [weak self] in self?.integrations.claudeStatusLine ?? .notInstalled(hasOwn: false) }
+        widgets.connectClaudeUsage = { [weak self] in
+            guard let self else { return }
+            self.openSettings(pane: .agents)
+            self.windows.settingsModel.prepareStatusLine(install: true)
+        }
         managedCodex.executablePath = { [weak self] in self?.integrations.codex?.executablePath }
         bridge.onControl = { [weak self] event, payload in
             guard let self, self.isDeveloperMode else { return }
@@ -184,6 +202,7 @@ final class AppServices {
         }
         if old.advanced.demoMode != new.advanced.demoMode {
             agents.setDemo(new.advanced.demoMode)
+            if !new.advanced.demoMode { widgets.recorder.clearDemo() }
         }
         if old.agents.useSessionRegistry != new.agents.useSessionRegistry {
             bridge.setRegistry(enabled: new.agents.useSessionRegistry)

@@ -44,6 +44,20 @@
 	<key>NSHumanReadableCopyright</key>
 	<string>© 2026 PulseDock</string>
 	<key>NSAppleEventsUsageDescription</key>
-	<string>PulseDock uses Apple Events only after you ask it to: to select the exact Terminal or iTerm tab of an agent session, to show and control what Music or Spotify is playing, to set the macOS Dock to auto-hide in Replacement Mode, and to empty the Trash through Finder.</string>
+	<string>PulseDock uses Apple Events only after you ask it to: to select the exact Terminal or iTerm tab of an agent session, to show and control what Music or Spotify is playing, to show in Dock Cinema the YouTube video open in your browser, to set the macOS Dock to auto-hide in Replacement Mode, and to empty the Trash through Finder.</string>
+	<key>NSCalendarsFullAccessUsageDescription</key>
+	<string>The Calendar widget shows your next events and a button to join video calls. Events are read on this Mac and never leave it.</string>
+	<key>NSCalendarsUsageDescription</key>
+	<string>The Calendar widget shows your next events and a button to join video calls. Events are read on this Mac and never leave it.</string>
+	<key>NSRemindersFullAccessUsageDescription</key>
+	<string>The Reminders widget shows what is due next and lets you tick reminders off from the dock. Reminders stay on this Mac.</string>
+	<key>NSRemindersUsageDescription</key>
+	<string>The Reminders widget shows what is due next and lets you tick reminders off from the dock. Reminders stay on this Mac.</string>
+	<key>NSDownloadsFolderUsageDescription</key>
+	<string>The Downloads widget lists your newest downloads so you can open or drag them from the dock.</string>
+	<key>NSDesktopFolderUsageDescription</key>
+	<string>The Screenshots widget lists the screenshots macOS saves on your Desktop so you can drag them from the dock.</string>
+	<key>NSDocumentsFolderUsageDescription</key>
+	<string>A Files widget you pointed at a folder in Documents lists its newest items.</string>
 </dict>
 </plist>

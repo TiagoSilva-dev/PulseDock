@@ -2,6 +2,22 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>calendar.inMinutes</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@count@</string>
+		<key>count</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>ld</string>
+			<key>one</key>
+			<string>Em %ld minuto</string>
+			<key>other</key>
+			<string>Em %ld minutos</string>
+		</dict>
+	</dict>
 	<key>card.subagents.running</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>
@@ -82,6 +98,86 @@
 			<string>%ld sessões, tudo tranquilo</string>
 		</dict>
 	</dict>
+	<key>cinema.queueCount</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@count@</string>
+		<key>count</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>ld</string>
+			<key>one</key>
+			<string>Mais %ld na fila</string>
+			<key>other</key>
+			<string>Mais %ld na fila</string>
+		</dict>
+	</dict>
+	<key>clipboard.count</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@count@</string>
+		<key>count</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>ld</string>
+			<key>one</key>
+			<string>%ld item</string>
+			<key>other</key>
+			<string>%ld itens</string>
+		</dict>
+	</dict>
+	<key>countdown.accessibility</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@count@</string>
+		<key>count</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>ld</string>
+			<key>one</key>
+			<string>Falta %ld dia</string>
+			<key>other</key>
+			<string>Faltam %ld dias</string>
+		</dict>
+	</dict>
+	<key>countdown.daysSince</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@count@</string>
+		<key>count</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>ld</string>
+			<key>one</key>
+			<string>Há %ld dia</string>
+			<key>other</key>
+			<string>Há %ld dias</string>
+		</dict>
+	</dict>
+	<key>countdown.daysUntil</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@count@</string>
+		<key>count</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>ld</string>
+			<key>one</key>
+			<string>Falta %ld dia</string>
+			<key>other</key>
+			<string>Faltam %ld dias</string>
+		</dict>
+	</dict>
 	<key>dock.menu.windowCount</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>
@@ -96,6 +192,54 @@
 			<string>%ld janela na tela</string>
 			<key>other</key>
 			<string>%ld janelas na tela</string>
+		</dict>
+	</dict>
+	<key>files.newCount</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@count@</string>
+		<key>count</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>ld</string>
+			<key>one</key>
+			<string>%ld item novo</string>
+			<key>other</key>
+			<string>%ld itens novos</string>
+		</dict>
+	</dict>
+	<key>heartbeat.caption.perMinute</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@count@</string>
+		<key>count</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>ld</string>
+			<key>one</key>
+			<string>%ld evento/min</string>
+			<key>other</key>
+			<string>%ld eventos/min</string>
+		</dict>
+	</dict>
+	<key>heartbeat.events</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@count@</string>
+		<key>count</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>ld</string>
+			<key>one</key>
+			<string>%ld evento</string>
+			<key>other</key>
+			<string>%ld eventos</string>
 		</dict>
 	</dict>
 	<key>island.accessibility.compact</key>
@@ -162,7 +306,7 @@
 			<string>%ld agentes precisam de você</string>
 		</dict>
 	</dict>
-	<key>onboarding.mode.imported</key>
+	<key>onboarding.mode.importedPersonal</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>
 		<string>%#@count@</string>
@@ -173,9 +317,41 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>ld</string>
 			<key>one</key>
-			<string>%ld app importado do Dock do macOS para o ambiente Desenvolvimento.</string>
+			<string>%ld app do Dock do macOS está no ambiente Pessoal; o Desenvolvimento tem seu terminal, editor e o Claude.</string>
 			<key>other</key>
-			<string>%ld apps importados do Dock do macOS para o ambiente Desenvolvimento.</string>
+			<string>%ld apps do Dock do macOS estão no ambiente Pessoal; o Desenvolvimento tem seu terminal, editor e o Claude.</string>
+		</dict>
+	</dict>
+	<key>pomodoro.doneToday</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@count@</string>
+		<key>count</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>ld</string>
+			<key>one</key>
+			<string>%ld sessão de foco hoje</string>
+			<key>other</key>
+			<string>%ld sessões de foco hoje</string>
+		</dict>
+	</dict>
+	<key>reminders.dueCount</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@count@</string>
+		<key>count</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>ld</string>
+			<key>one</key>
+			<string>%ld vence hoje</string>
+			<key>other</key>
+			<string>%ld vencem hoje</string>
 		</dict>
 	</dict>
 	<key>settings.privacy.retention</key>
@@ -192,6 +368,38 @@
 			<string>Apagar o histórico após %ld dia</string>
 			<key>other</key>
 			<string>Apagar o histórico após %ld dias</string>
+		</dict>
+	</dict>
+	<key>shelf.count</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@count@</string>
+		<key>count</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>ld</string>
+			<key>one</key>
+			<string>%ld item</string>
+			<key>other</key>
+			<string>%ld itens</string>
+		</dict>
+	</dict>
+	<key>timer.minutes</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@count@</string>
+		<key>count</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>ld</string>
+			<key>one</key>
+			<string>%ld minuto</string>
+			<key>other</key>
+			<string>%ld minutos</string>
 		</dict>
 	</dict>
 </dict>

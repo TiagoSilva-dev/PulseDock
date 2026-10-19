@@ -8,7 +8,7 @@ antes de mudanças estruturais.
 
 ```bash
 swift build                                  # todos os targets
-swift test                                   # 66 testes (Swift Testing); devem passar antes de concluir
+swift test                                   # 92 testes (Swift Testing); devem passar antes de concluir
 scripts/build-app.sh debug                   # .app de desenvolvimento em build/debug
 scripts/build-app.sh release                 # universal; falha se faltar tradução
 python3 scripts/localize.py --strict         # valida chaves, placeholders e plurais
@@ -17,7 +17,8 @@ open build/debug/PulseDock.app --args --developer --demo --no-onboarding
 ```
 
 Revisão visual (app em `--developer`): `build/debug/PulseDock.app/Contents/Helpers/pulsedockctl control …`
-com `open what=card|missionControl|settings pane=<pane>|onboarding`, `hover x=0.3`, `unhover`,
+com `open what=card|missionControl|settings pane=<pane>|onboarding`, `widget add=calendar,timer`,
+`widget open=calendar`, `widget remove=calendar`, `widget 'cinema=<link>' muted=true`, `workspace restore=development`, `browser` (detecção de vídeo do Cinema), `hover x=0.3`, `unhover`,
 `demo enabled=true|false`, `appearance mode=light|dark|system`, `sleep`, `wake` e `snapshot dir=<pasta>`.
 Capture janelas com `screencapture -x -o -l <windowID>`.
 
@@ -35,9 +36,11 @@ Capture janelas com `screencapture -x -o -l <windowID>`.
    diffs, variáveis de ambiente ou credenciais, nem em logs.
 4. **Helper dos hooks**: roda em **toda** chamada de ferramenta do Claude Code deste Mac (os hooks estão
    instalados). Ele precisa continuar silencioso (nada em stdout), rápido (entrega ≤ 0,3 s) e sempre com
-   `exit 0`. Teste mudanças com `pulsedockctl send-hook claude-code <fixture.json>` antes de reconstruir o app.
+   `exit 0`. Única exceção: o modo `claude-statusline` (widget
+   Uso do Claude), cuja saída **é** a status line do Claude Code; ele preserva e executa a status line
+   anterior do usuário (`claude-statusline-chain.json`). Teste mudanças com `pulsedockctl send-hook claude-code <fixture.json>` antes de reconstruir o app.
    A versão copiada para `~/Library/Application Support/PulseDock/bin/` é atualizada quando o app abre.
-5. **Configurações de terceiros**: só pelos instaladores (`ClaudeCodeHookInstaller`, `CodexHookInstaller`,
+5. **Configurações de terceiros**: só pelos instaladores (`ClaudeCodeHookInstaller`, `ClaudeStatusLineInstaller`, `CodexHookInstaller`,
    `CodexNotifyInstaller`), que fazem prévia, backup, preservam entradas de terceiros e recusam sobrescrever
    mudanças concorrentes. Nunca edite `~/.claude/settings.json` ou `~/.codex/*` à mão nem por `sed`.
 6. **Localização** (ADR 0008): todo texto visível passa por `tr("chave", "English")` ou
@@ -49,7 +52,9 @@ Capture janelas com `screencapture -x -o -l <windowID>`.
    `PulseGlassSurface(…, legibility: .content)`. Toda cor nova de tema precisa de variante clara e escura, e
    estados nunca dependem só de cor (símbolo + texto).
 8. **Sem APIs privadas** e sem hacks no Dock do macOS (ADR 0006). Sem polling caro: prefira notificações,
-   vnode e display link só durante animações.
+   vnode e display link só durante animações. **Widgets** (ADR 0010): entrada no `WidgetCatalog`, provedor
+   ativo só com o widget visível, painel sem campo focado ao abrir, e nada de `TimelineView(.animation)` ou
+   animação contínua (o primeiro Pulse Buddy custava 15% de CPU); meça com `scripts/benchmark.sh`.
 9. **Demo**: dados simulados levam o selo DEMO e nunca vão para o banco (`PersistenceTests` garante).
 10. **Mudanças com efeito externo** (instalar ferramentas, alterar configurações do sistema ou dos agentes,
     permissões): peça confirmação ao usuário.
@@ -75,3 +80,6 @@ Capture janelas com `screencapture -x -o -l <windowID>`.
 | Janela e interação do dock | `PulseDockApp/Dock/DockWindowController.swift`, `DockHostView.swift`, `DockPanel.swift` |
 | Smart Return | `PulseDockApp/Agents/SmartReturn.swift` |
 | Ajustes | `PulseDockApp/Settings/` (`AppSettings.swift` decodifica de forma tolerante: mantenha os defaults) |
+| Widgets (catálogo, painéis, drops) | `PulseDockApp/Widgets/WidgetCatalog.swift`, `WidgetController.swift`, `Views/`; lógica em `Sources/WidgetCore/` (ADR 0010) |
+| Dock Cinema (YouTube) | `PulseDockApp/Widgets/Cinema/` |
+| Uso do Claude (status line) | `Sources/AgentBridge/StatusLineSanitizer.swift`, `Sources/AgentCore/Usage/ClaudeUsage.swift`, `Sources/ClaudeCodeAdapter/ClaudeStatusLineInstaller.swift`, `PulseDockApp/Widgets/Views/ClaudeUsageViews.swift` |

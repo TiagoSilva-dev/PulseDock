@@ -65,12 +65,39 @@ public enum HookEnvelopeBuilder {
         )
     }
 
+    /// Claude Code status line: usage numbers for the Claude Usage widget.
+    public static func statusLineEnvelope(
+        rawInput: Data,
+        context: ProcessContext?,
+        startWall: Int64,
+        startMono: UInt64?,
+        bootID: String?,
+        helperPID: Int32
+    ) -> (envelope: BridgeEnvelope, sanitized: JSONValue)? {
+        guard let object = (try? JSONSerialization.jsonObject(with: rawInput)) as? [String: Any],
+              let sessionID = object["session_id"] as? String, !sessionID.isEmpty, sessionID.count <= 256 else { return nil }
+        let payload = StatusLineSanitizer.sanitize(object)
+        let envelope = BridgeEnvelope(
+            kind: .statusLine,
+            source: .claudeCode,
+            event: "StatusLine",
+            ts: startWall,
+            boot: bootID,
+            mono: startMono,
+            payload: payload,
+            ctx: context,
+            helper: HelperInfo(version: helperVersion, pid: helperPID)
+        )
+        return (envelope, payload)
+    }
+
     /// Delivers an envelope or spools it when PulseDock is not listening.
     @discardableResult
     public static func deliver(_ envelope: BridgeEnvelope, socketPath: String = BridgePaths.socketPath, spool: URL = BridgePaths.spool) -> BridgeClient.Outcome {
         guard let line = try? envelope.encodedLine() else { return .failed(EINVAL) }
         let outcome = BridgeClient.send(line, socketPath: socketPath)
-        if outcome != .delivered {
+        // Usage snapshots are superseded within seconds: replaying old ones is pointless.
+        if outcome != .delivered, envelope.kind != .statusLine {
             BridgeSpool.append(line, to: spool)
         }
         return outcome

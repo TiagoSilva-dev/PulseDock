@@ -15,7 +15,7 @@ Testes **simulados** (fixtures) e testes de **integração real** ficam separado
 como prova de compatibilidade com versões externas: elas seguem os schemas oficiais e são confirmadas por
 sessões reais quando possível.
 
-## 2. Testes automatizados (66 — todos passando)
+## 2. Testes automatizados (92 — todos passando)
 
 | Suíte | Testes | Cobre |
 | --- | --- | --- |
@@ -24,11 +24,15 @@ sessões reais quando possível.
 | Presentation (`PresentationTests`) | 7 | sessão aguardando nunca fica atrás das que trabalham; silenciadas não tomam a ilha; flash de conclusão; classificação pelos programas literais; timeline pareada e agrupada; cenário demo marcado; projetos pela raiz do repositório |
 | Load (`LoadTests`) | 1 | 25 sessões × 200 eventos (5.010), entrelaçados; a aprovação fica no topo; tempos impressos |
 | Claude Code pipeline (`ClaudeCodePipelineTests`) | 4 | nenhum campo de conteúdo sobrevive ao sanitizador; cada fixture vira o evento documentado; detalhes só de campos concretos; replay da sessão com o estado esperado a cada passo |
+| Claude usage (`ClaudeUsageTests`) | 5 | só números, modelo e pasta passam pelo sanitizador da status line (título da sessão, transcript, PR, repositório descartados); envelope → snapshot pelo formato do fio; custo diário por incrementos e sessões antigas como limite inferior; limites mais recentes, janelas vencidas somem, avisos 80/95% uma vez; projeção só com 10 min de crescimento e antes da renovação |
+| Status line installer (`ClaudeStatusLineInstallerTests`) | 4 | instalação limpa e remoção byte a byte; status line existente encadeada (padding/refreshInterval preservados, comentário final inofensivo) e restaurada exatamente; restauração pelo fallback se o arquivo de encadeamento sumir; recusa sobrescrever mudança concorrente |
 | Claude Code installer (`ClaudeCodeInstallerTests`) | 8 | preserva chaves e handlers de terceiros na ordem; idempotente e reversível; remove a seção `hooks` criada; não sobrescreve mudanças feitas após a prévia; JSON inválido é reportado; aspas em caminhos; versões antigas; registro de sessões sem ler `.key` |
 | Codex (`CodexAdapterTests`) | 6 | hooks (inclusive falha de Bash e `Interrupt`); notify só fim de turno e sem conteúdo; instalação/remoção do `hooks.json`; encadeamento/restauração do notify; notify multilinha deixado para edição manual; app-server → eventos e aprovações com decisões da API |
 | Agent bridge (`AgentBridgeTests`) | 9 | envelopes pelo socket; mensagens grandes descartadas; segundo servidor não rouba o socket; sem servidor o cliente desiste rápido; spool privado e drenagem atômica; redação de credenciais; `apply_patch` só com nomes de arquivo; níveis de detalhe de comando; validação; inspeção de processos |
 | Persistence (`PersistenceTests`) | 5 | migração e ajustes; ordem de eventos e sessões; demo nunca gravado; histórico desligado / caminhos removidos / exclusão; retenção |
 | Magnification (`MagnificationTests`) | 6 | sem magnificação sem ponteiro; alvo de clique estável; slots sem sobreposição; pico e crescimento limitados; vizinhos crescem menos; molas assentam |
+| Agent Heartbeat (`HeartbeatTests`) | 5 | só eventos concretos viram batidas; silêncio é linha reta; raias por sessão e tipo mais importante; Radar de Testes (saída 0 passa, outro código falha, sem código é "terminou sem erro"); selo DEMO |
+| Widgets (`WidgetCoreTests`) | 12 | timer/cronômetro/Pomodoro com relógio injetado; progresso do tempo e dias; links do YouTube (todos os formatos, outros sites rejeitados); respostas do Open-Meteo; conversão de unidades e vírgula decimal; área de transferência (ocultos ignorados, duplicados, limite); taxa de rede; tons de pele do emoji; vídeo do navegador (saída do script, títulos, aba escolhida, filtro dentro do script); scripts dos navegadores compilam com `osacompile` contra os dicionários instalados, sem enviar eventos |
 
 ### Fixtures e contratos
 
@@ -75,6 +79,20 @@ clara.
 Ferramentas: com o app em `--developer`, `pulsedockctl control open what=card|missionControl|settings pane=…`,
 `control hover x=0.3`, `control demo enabled=true`, `control appearance mode=light|dark|system`,
 `control snapshot dir=…`, `control sleep` / `control wake`.
+
+### Widgets (2026-10-19, capturas reais, escuro e claro)
+
+- Revisados ao vivo: Agent Heartbeat (tile e painel), Pulse Buddy (humores trabalhando, alerta, falha), Dock
+  Cinema (vídeo real tocando no player flutuante; pausa automática com aviso no pedido de aprovação da
+  demo), Calendário e Lembretes (antes da permissão), Timer, Pomodoro, Contagem, Progresso do tempo, Clima
+  (busca), Rede, Bateria, Nota, Atalhos, Água, Prateleira, AirDrop, Área de transferência, Conta-gotas,
+  Emoji, Conversor e Cronômetro.
+- Corrigido a partir das capturas: três raias paralelas no tile do Heartbeat (virou um traço único); Buddy
+  com cor apagada; plural "1 eventos/min"; "1 days" na Contagem; painéis com sobra (altura medida pelo
+  conteúdo); dock passando da largura da tela (ícones encolhem para caber); selo DEMO ausente no Heartbeat e
+  no Buddy; campo de busca focado ao abrir, que fazia o AutoFill do macOS sobrepor uma sugestão ao painel.
+- Desempenho: o Buddy animado a 30 fps custava 15% de CPU com um agente trabalhando; refeito com pulinhos
+  por evento, volta a 0,14%.
 
 ### Desempenho (`scripts/benchmark.sh`, build de release)
 

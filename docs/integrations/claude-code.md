@@ -61,6 +61,32 @@ Para cada evento, um handler identificado pelo caminho do helper:
 - O `exec` faz o helper herdar o processo do shell, então o pai dele é o próprio Claude Code. É isso que
   permite identificar o app hospedeiro e a TTY para o Smart Return.
 
+### Status line (opcional, widget Uso do Claude)
+
+Ajustes › Agentes de IA › "Uso do Claude (status line)" › Conectar…, ou "Conectar ao Claude Code…" no painel
+do widget. Mesma prévia, backup e validação dos hooks (`ClaudeStatusLineInstaller`):
+
+```json
+"statusLine": {
+  "type": "command",
+  "command": "[ -x '<…>/pulsedock-hook' ] && exec '<…>/pulsedock-hook' claude-statusline || exit 0"
+}
+```
+
+- Com uma status line já existente, as outras chaves dela (`padding`, `refreshInterval`…) ficam, o objeto
+  original vai para `~/Library/Application Support/PulseDock/claude-statusline-chain.json` e o comando termina
+  em `|| ( <seu comando>⏎)`. O helper executa o seu comando com a mesma entrada e mostra a saída dele.
+- Sem status line prévia, aparece uma linha compacta (`Opus · ctx 8% · 5h 23% · 7d 41%`). Atenção: com
+  qualquer status line, o Claude Code esconde a maior parte das dicas de teclado do rodapé.
+- Campos usados: `rate_limits.five_hour|seven_day` (`used_percentage`, `resets_at`, só Pro/Max),
+  `rate_limits.spend_limit`, `cost.*`, `context_window.used_percentage|context_window_size`, `model`, `version`,
+  `workspace.project_dir`. Todo o resto é descartado no helper.
+- A status line roda quando chega uma resposta do assistente (com debounce de 300 ms), não em intervalos: o
+  uso feito em outros lugares (claude.ai, outro Mac) só aparece na próxima resposta.
+
+Validado ao vivo em 2026-10-19 (Claude Code 2.1.302, plano por assinatura): o Claude Code passou a executar
+a status line na sessão em andamento, sem reiniciar, e o widget mostrou os limites reais na primeira resposta.
+
 ## 3. Eventos e mapeamento
 
 | Hook | Evento normalizado | Efeito no estado |

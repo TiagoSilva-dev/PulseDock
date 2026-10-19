@@ -25,6 +25,8 @@ final class AgentBridgeService {
     @ObservationIgnored private var registry: ClaudeSessionRegistry?
     /// Developer control messages (snapshots), enabled only with `--developer`.
     @ObservationIgnored var onControl: (String, JSONValue) -> Void = { _, _ in }
+    /// Claude Code status line snapshots (Claude Usage widget).
+    @ObservationIgnored var onUsage: (ClaudeUsageSnapshot) -> Void = { _ in }
 
     init(store: AgentStore) {
         self.store = store
@@ -38,6 +40,11 @@ final class AgentBridgeService {
         let server = BridgeServer { [weak self] envelope in
             // Runs on the bridge queue: normalisation is pure and cheap.
             let received = Date()
+            if envelope.kind == .statusLine {
+                guard let snapshot = ClaudeUsageNormalizer.snapshot(from: envelope, receivedAt: received) else { return }
+                Task { @MainActor in self?.onUsage(snapshot) }
+                return
+            }
             let events: [AgentEvent]
             switch envelope.source {
             case .claudeCode: events = ClaudeCodeNormalizer.normalize(envelope, receivedAt: received)

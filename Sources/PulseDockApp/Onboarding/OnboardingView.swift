@@ -78,8 +78,8 @@ struct OnboardingView: View {
             Text(tr("onboarding.mode.title", "PulseDock starts alongside the macOS Dock")).font(.title3.weight(.semibold))
             Text(tr("onboarding.mode.body", "In Companion Mode nothing in your system changes: PulseDock floats above the macOS Dock. When you are ready, Settings › General › Replacement Mode sets the macOS Dock to auto-hide — and restores it whenever you want."))
                 .foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-            let imported = services.settings.settings.workspaces.first?.pinned.count ?? 0
-            Label(trp("onboarding.mode.imported", one: "%ld app imported from your macOS Dock into the Development workspace.", other: "%ld apps imported from your macOS Dock into the Development workspace.", imported), systemImage: "square.and.arrow.down")
+            let imported = services.settings.settings.workspaces.first { $0.preset == .personal }?.pinned.count ?? 0
+            Label(trp("onboarding.mode.importedPersonal", one: "%ld app from your macOS Dock is in the Personal workspace; Development has your terminal, editor and Claude.", other: "%ld apps from your macOS Dock are in the Personal workspace; Development has your terminal, editor and Claude.", imported), systemImage: "square.and.arrow.down")
             Label(tr("onboarding.mode.tips", "Right-click the dock for workspaces, themes and widgets. Drag icons to reorder; drag one out to remove it."), systemImage: "cursorarrow.click.2")
                 .fixedSize(horizontal: false, vertical: true)
         }

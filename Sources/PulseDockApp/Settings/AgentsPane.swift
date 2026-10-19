@@ -41,6 +41,27 @@ struct AgentsPane: View {
                         }
                     }
                 }
+                HStack(spacing: 12) {
+                    Image(systemName: "gauge.with.needle").font(.title2).foregroundStyle(.secondary).frame(width: 34)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(tr("settings.agents.usage", "Claude usage (status line)")).font(.headline)
+                        Text(statusLineDetail).font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                    }
+                    Spacer()
+                    switch integrations.claudeStatusLine {
+                    case .notInstalled:
+                        Button(tr("settings.agents.connect", "Connect…")) { model.prepareStatusLine(install: true) }
+                            .disabled(integrations.claude?.isInstalled != true)
+                    case .installed:
+                        Button(tr("settings.agents.disconnect", "Disconnect…")) { model.prepareStatusLine(install: false) }
+                    case .outdated:
+                        Button(tr("settings.agents.repair", "Repair…")) { model.prepareStatusLine(install: true) }
+                            .buttonStyle(.borderedProminent)
+                    case .unreadable:
+                        EmptyView()
+                    }
+                }
+                .padding(.vertical, 4)
                 if let result = model.selfTestResult {
                     Label(result ? tr("settings.agents.test.ok", "The hook helper reached PulseDock.") : tr("settings.agents.test.failed", "The helper could not reach PulseDock. Check Diagnostics in Advanced."),
                           systemImage: result ? "checkmark.circle.fill" : "xmark.octagon.fill")
@@ -122,6 +143,19 @@ struct AgentsPane: View {
         guard let path = claude.executablePath else { return tr("settings.agents.claude.notFound", "Claude Code was not found in the usual install locations.") }
         let version = claude.version.map { " · \($0)" } ?? ""
         return (Formatting.shortPath(path) ?? path) + version
+    }
+
+    private var statusLineDetail: String {
+        switch model.integrations.claudeStatusLine {
+        case let .notInstalled(hasOwn):
+            hasOwn ? tr("settings.agents.usage.own", "Shows your 5-hour and weekly limits in the Claude Usage widget. Your current status line keeps working.")
+                : tr("settings.agents.usage.off", "Shows your 5-hour and weekly limits in the Claude Usage widget.")
+        case let .installed(chained):
+            chained ? tr("settings.agents.usage.chained", "Connected. Your own status line runs behind PulseDock's.")
+                : tr("settings.agents.usage.on", "Connected. Claude Code shows a compact usage line under the prompt.")
+        case .outdated: tr("settings.agents.usage.outdated", "Points to an older PulseDock helper.")
+        case let .unreadable(message): message
+        }
     }
 
     private var codexDetail: String {
@@ -225,6 +259,7 @@ struct InstallSheetView: View {
         switch sheet.target {
         case .claudeInstall: message += " " + tr("install.done.claude", "New and running Claude Code sessions pick up the hooks automatically.")
         case .codexHooksInstall: message += " " + tr("install.done.codex", "Now open Codex and run /hooks to trust them.")
+        case .claudeStatusLineInstall: message += " " + tr("install.done.statusLine", "Claude Code picks it up at its next update; the widget fills in with the next reply.")
         default: break
         }
         return message

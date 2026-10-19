@@ -2,6 +2,7 @@ import AgentBridge
 import DockCore
 import DockRendering
 import Foundation
+import WidgetCore
 
 nonisolated enum OperatingMode: String, Codable, CaseIterable, Sendable {
     /// PulseDock complements the macOS Dock, which stays untouched (default).
@@ -56,14 +57,69 @@ nonisolated enum WidgetKind: String, Codable, CaseIterable, Sendable, Identifiab
     case systemHealth
     case nowPlaying
     case quickLaunch
+    // Time
+    case calendar, timer, stopwatch, pomodoro, countdown, timeProgress
+    // Productivity
+    case reminders, note, shortcuts, water
+    // Files
+    case files, shelf, airDrop, screenshots
+    // Utilities
+    case clipboard, colorPicker, emoji, converter
+    // System and world
+    case network, battery, weather
+    // PulseDock originals
+    case cinema, agentHeartbeat, pulseBuddy, claudeUsage
 
     var id: String { rawValue }
+}
+
+/// Per-placement options (each placement of the same widget can differ, for example two
+/// clocks in different time zones). Every field is optional so older settings decode.
+nonisolated struct WidgetOptions: Codable, Hashable, Sendable {
+    var timeZoneID: String?
+    var analogClock: Bool?
+    var countdownTitle: String?
+    var countdownDate: Date?
+    var progressScope: TimeProgressScope?
+    var weatherPlace: WeatherPlace?
+    var fahrenheit: Bool?
+    var waterGoal: Int?
+    var folderPath: String?
 }
 
 nonisolated struct WidgetPlacement: Codable, Hashable, Identifiable, Sendable {
     var id = UUID()
     var kind: WidgetKind
     var collectionID: UUID?
+    var options: WidgetOptions?
+
+    var settings: WidgetOptions {
+        get { options ?? WidgetOptions() }
+        set { options = newValue }
+    }
+}
+
+/// Decodes an array element by element, dropping elements that fail (for example a widget
+/// added by a newer PulseDock), so one unknown entry never discards a whole workspace.
+nonisolated struct LossyArray<Element: Decodable>: Decodable {
+    var elements: [Element]
+
+    init(elements: [Element]) { self.elements = elements }
+
+    private struct Skip: Decodable {}
+
+    init(from decoder: Decoder) throws {
+        var container = try decoder.unkeyedContainer()
+        var result: [Element] = []
+        while !container.isAtEnd {
+            if let element = try? container.decode(Element.self) {
+                result.append(element)
+            } else {
+                _ = try? container.decode(Skip.self)
+            }
+        }
+        elements = result
+    }
 }
 
 nonisolated struct QuickLaunchCollection: Codable, Hashable, Identifiable, Sendable {
@@ -177,6 +233,8 @@ nonisolated struct NotificationSettings: Codable, Hashable, Sendable {
     var attention = true
     var failures = true
     var completions = false
+    /// Claude usage limits crossing 80% and 95% (from the status line).
+    var usageLimits = true
     var playSound = true
     var quietHoursEnabled = false
     /// Minutes after midnight.
@@ -338,7 +396,7 @@ nonisolated extension AgentSettings {
 }
 
 nonisolated extension NotificationSettings {
-    enum CodingKeys: String, CodingKey { case enabled, attention, failures, completions, playSound, quietHoursEnabled, quietStart, quietEnd }
+    enum CodingKeys: String, CodingKey { case enabled, attention, failures, completions, usageLimits, playSound, quietHoursEnabled, quietStart, quietEnd }
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         let d = NotificationSettings()
@@ -346,6 +404,7 @@ nonisolated extension NotificationSettings {
         attention = c.value(.attention, d.attention)
         failures = c.value(.failures, d.failures)
         completions = c.value(.completions, d.completions)
+        usageLimits = c.value(.usageLimits, d.usageLimits)
         playSound = c.value(.playSound, d.playSound)
         quietHoursEnabled = c.value(.quietHoursEnabled, d.quietHoursEnabled)
         quietStart = c.value(.quietStart, d.quietStart)
@@ -376,3 +435,24 @@ nonisolated extension AdvancedSettings {
         forceLegacyMaterial = c.value(.forceLegacyMaterial, false)
     }
 }
+
+nonisolated extension Workspace {
+    enum CodingKeys: String, CodingKey {
+        case id, name, symbol, pinned, theme, widgets, showRunningApps, agentFilter, preset
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(UUID.self, forKey: .id)
+        name = try c.decode(String.self, forKey: .name)
+        symbol = c.value(.symbol, "square.grid.2x2")
+        pinned = c.value(.pinned, [])
+        theme = c.value(.theme, nil)
+        widgets = c.value(.widgets, LossyArray<WidgetPlacement>(elements: [])).elements
+        showRunningApps = c.value(.showRunningApps, true)
+        agentFilter = c.value(.agentFilter, .all)
+        preset = c.value(.preset, nil)
+    }
+}
+
+extension LossyArray: Sendable where Element: Sendable {}

@@ -43,6 +43,8 @@ final class SettingsModel {
             case codexHooksInstall
             case codexHooksUninstall
             case codexNotifyInstall(CodexNotifyInstaller.Plan)
+            case claudeStatusLineInstall(ClaudeStatusLineInstaller.Plan)
+            case claudeStatusLineUninstall(ClaudeStatusLineInstaller.Plan)
         }
 
         let id = UUID()
@@ -97,8 +99,31 @@ final class SettingsModel {
                 if let previous = notifyPlan.previousCommand {
                     explanation.append(tr("install.notify.chain", "Your current notify command (%@) keeps working: PulseDock forwards every notification to it.", previous.joined(separator: " ")))
                 }
+            case let .claudeStatusLineInstall(statusPlan):
+                plan = statusPlan.change
+                title = tr("install.statusLine.title", "Show Claude usage in PulseDock")
+                explanation = [
+                    tr("install.statusLine.what", "Sets PulseDock's status line in ~/.claude/settings.json. It is the official way Claude Code shares usage: your 5-hour and weekly limits (Pro and Max), the session cost estimate and context use."),
+                    tr("install.statusLine.privacy", "Only those numbers, the model and the project folder reach PulseDock. Credentials, prompts and session titles are never read."),
+                    statusPlan.chained == nil
+                        ? tr("install.statusLine.new", "Claude Code will show a compact line under the prompt (model, context, 5h and 7d use). With a status line, Claude Code hides most footer key hints.")
+                        : tr("install.statusLine.chain", "Your current status line keeps working: PulseDock runs it with the same data and shows its output. Disconnecting puts it back exactly."),
+                ]
+            case let .claudeStatusLineUninstall(statusPlan):
+                plan = statusPlan.change
+                title = tr("install.statusLine.uninstall.title", "Stop showing Claude usage")
+                explanation = [tr("install.statusLine.uninstall.what", "Removes PulseDock's status line and restores the one you had before, if any.")]
             }
             installSheet = InstallSheet(target: target, plan: plan, title: title, explanation: explanation)
+        } catch {
+            lastMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+        }
+    }
+
+    /// Claude Usage: plans the status line change and opens the review sheet.
+    func prepareStatusLine(install: Bool) {
+        do {
+            prepare(install ? .claudeStatusLineInstall(try integrations.planStatusLineInstall()) : .claudeStatusLineUninstall(try integrations.planStatusLineUninstall()))
         } catch {
             lastMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
         }
@@ -123,6 +148,8 @@ final class SettingsModel {
                     sheet.backupLocation = try await integrations.applyCodexHooks(sheet.plan)
                 case let .codexNotifyInstall(plan):
                     try await integrations.applyCodexNotify(plan)
+                case let .claudeStatusLineInstall(plan), let .claudeStatusLineUninstall(plan):
+                    sheet.backupLocation = try await integrations.applyStatusLine(plan)
                 }
                 sheet.done = true
                 sheet.error = nil

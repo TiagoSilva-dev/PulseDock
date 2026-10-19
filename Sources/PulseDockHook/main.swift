@@ -7,11 +7,13 @@ import Foundation
 //   pulsedock-hook claude-code [EventName]    hook JSON on stdin
 //   pulsedock-hook codex [EventName]          hook JSON on stdin
 //   pulsedock-hook codex-notify '<json>'      Codex `notify` (JSON as last argument)
+//   pulsedock-hook claude-statusline          Claude Code status line (JSON on stdin)
 //   pulsedock-hook --self-test                 sends a test message, prints the outcome
 //   pulsedock-hook --version
 //
 // Contract with the agents: never write to stdout while acting as a hook (stdout can become
-// model context on some events), never block for long, and always exit 0. Failures are
+// model context on some events), never block for long, and always exit 0. The status line
+// mode is the one exception by design: its stdout *is* the status line Claude Code displays. Failures are
 // recorded locally in `run/helper-errors.log` without any payload content.
 
 let startWall = Int64((Date().timeIntervalSince1970 * 1000).rounded())
@@ -72,6 +74,31 @@ func forwardToPreviousNotifyCommand(_ argument: String) {
     if result != 0 { logFailure("notify-chain spawn failed errno=\(result)") }
 }
 
+/// Runs the user's own status line command with the same input, writing straight to our
+/// stdout, so installing PulseDock never takes away a status line someone already had.
+func runChainedStatusLine(input: Data) -> Bool {
+    guard let data = try? Data(contentsOf: BridgePaths.statusLineChain), data.count < 65_536,
+          let object = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any],
+          let command = object["command"] as? String, !command.isEmpty else { return false }
+    let process = Process()
+    process.executableURL = URL(fileURLWithPath: "/bin/sh")
+    process.arguments = ["-c", command]
+    let stdin = Pipe()
+    process.standardInput = stdin
+    process.standardOutput = FileHandle.standardOutput
+    process.standardError = FileHandle.standardError
+    do {
+        try process.run()
+    } catch {
+        logFailure("statusline chain spawn failed")
+        return false
+    }
+    stdin.fileHandleForWriting.write(input)
+    try? stdin.fileHandleForWriting.close()
+    process.waitUntilExit()
+    return true
+}
+
 switch mode {
 case "--version":
     print(HookEnvelopeBuilder.helperVersion)
@@ -118,6 +145,26 @@ case "claude-code", "codex":
         break
     case let .failed(code):
         logFailure("\(mode) \(envelope.event) delivery failed errno=\(code)")
+    }
+
+case "claude-statusline":
+    let input = readStandardInput(limit: 1024 * 1024)
+    let built = HookEnvelopeBuilder.statusLineEnvelope(
+        rawInput: input,
+        context: nil,
+        startWall: startWall,
+        startMono: startMono,
+        bootID: ProcessInspector.bootSessionID,
+        helperPID: getpid()
+    )
+    if let built {
+        if case let .failed(code) = HookEnvelopeBuilder.deliver(built.envelope) { logFailure("statusline delivery failed errno=\(code)") }
+    }
+    // A chained status line (git status and the like) may take longer than a hook.
+    alarm(10)
+    if !runChainedStatusLine(input: input), let built {
+        let line = StatusLineSanitizer.compactLine(built.sanitized)
+        if !line.isEmpty { print(line) }
     }
 
 case "codex-notify":

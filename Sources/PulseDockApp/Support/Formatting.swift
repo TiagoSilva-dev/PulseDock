@@ -21,6 +21,44 @@ enum Formatting {
         return minutes == 0 ? tr("duration.hours", "%ld h", hours) : tr("duration.hoursMinutes", "%ld h %ld min", hours, minutes)
     }
 
+    /// "41%" in the current locale (whole percent).
+    static func percent(_ fraction: Double) -> String {
+        percentFormatter.string(from: NSNumber(value: fraction)) ?? "\(Int((fraction * 100).rounded()))%"
+    }
+
+    static let percentFormatter: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .percent
+        formatter.maximumFractionDigits = 0
+        return formatter
+    }()
+
+    /// US dollars in the current locale ("US$ 1,75", "$1.75"): Claude Code estimates in USD.
+    static func usd(_ value: Double) -> String {
+        usdFormatter.string(from: NSNumber(value: value)) ?? String(format: "$%.2f", value)
+    }
+
+    static let usdFormatter: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.currencyCode = "USD"
+        return formatter
+    }()
+
+    /// When a limit resets: "15:40 (in 1 h 12 min)" today, "Fri 09:00" later.
+    static func reset(_ date: Date, now: Date = Date()) -> String {
+        if Calendar.current.isDate(date, inSameDayAs: now) || date.timeIntervalSince(now) < 12 * 3600 {
+            return tr("usage.resetSoon", "%@ (in %@)", timeFormatter.string(from: date), duration(date.timeIntervalSince(now)))
+        }
+        return weekdayTimeFormatter.string(from: date)
+    }
+
+    static let weekdayTimeFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.setLocalizedDateFormatFromTemplate("EEEjmm")
+        return formatter
+    }()
+
     static let timeFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.timeStyle = .short

@@ -81,6 +81,14 @@ public enum JSONValue: Codable, Sendable, Hashable {
         }
     }
 
+    public var numberValue: Double? {
+        switch self {
+        case let .number(value): value
+        case let .string(value): Double(value)
+        default: nil
+        }
+    }
+
     public var intValue: Int? {
         switch self {
         case let .number(value): Int(exactly: value.rounded()) ?? Int(value)

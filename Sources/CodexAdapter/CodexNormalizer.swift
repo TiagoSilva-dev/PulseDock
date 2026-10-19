@@ -23,7 +23,7 @@ public enum CodexNormalizer {
         switch envelope.kind {
         case .hook: return normalizeHook(envelope, receivedAt: receivedAt)
         case .notify: return normalizeNotify(envelope, receivedAt: receivedAt)
-        case .control: return []
+        case .control, .statusLine: return []
         }
     }
 

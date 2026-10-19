@@ -143,6 +143,16 @@ private struct WorkspacesSection: View {
                         } else {
                             Button(tr("settings.workspace.switch", "Switch")) { model.services.dockController.switchWorkspace(to: workspace.id) }
                         }
+                        if workspace.preset != nil {
+                            Button {
+                                store.update { settings in
+                                    if let i = settings.workspaces.firstIndex(where: { $0.id == workspace.id }) { WorkspaceDefaults.restore(&settings.workspaces[i]) }
+                                }
+                            } label: { Image(systemName: "arrow.counterclockwise") }
+                                .buttonStyle(.borderless)
+                                .help(tr("settings.workspace.restore", "Restore this workspace's default apps and widgets"))
+                                .accessibilityLabel(tr("settings.workspace.restore", "Restore this workspace's default apps and widgets"))
+                        }
                         Button(role: .destructive) {
                             store.update { settings in
                                 settings.workspaces.removeAll { $0.id == workspace.id }
@@ -329,9 +339,13 @@ private struct WidgetsSection: View {
             }
             ForEach(Array(widgets.enumerated()), id: \.element.id) { index, placement in
                 HStack {
-                    Text(placement.kind == .quickLaunch
-                         ? (store.settings.collections.first { $0.id == placement.collectionID }?.name ?? placement.kind.displayName)
-                         : placement.kind.displayName)
+                    Image(systemName: placement.kind.symbol).frame(width: 18).foregroundStyle(.secondary)
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text(placement.kind == .quickLaunch
+                             ? (store.settings.collections.first { $0.id == placement.collectionID }?.name ?? placement.kind.displayName)
+                             : placement.kind.displayName)
+                        Text(placement.kind.summary).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                    }
                     Spacer()
                     Button { move(index, by: -1) } label: { Image(systemName: "chevron.up") }.buttonStyle(.borderless).disabled(index == 0)
                     Button { move(index, by: 1) } label: { Image(systemName: "chevron.down") }.buttonStyle(.borderless).disabled(index == widgets.count - 1)
@@ -341,9 +355,20 @@ private struct WidgetsSection: View {
                 }
             }
             Menu(tr("settings.widgets.add", "Add Widget")) {
-                ForEach(WidgetKind.allCases.filter { $0 != .quickLaunch }) { kind in
-                    Button(kind.displayName) { model.services.dockController.addWidget(kind) }
+                ForEach(WidgetCategory.allCases, id: \.self) { category in
+                    let kinds = WidgetKind.addable.filter { $0.category == category }
+                    if !kinds.isEmpty {
+                        Menu {
+                            ForEach(kinds) { kind in
+                                Button { model.services.dockController.addWidget(kind) } label: { Label(kind.displayName, systemImage: kind.symbol) }
+                                    .help(kind.summary)
+                            }
+                        } label: {
+                            Label(category.displayName, systemImage: category.symbol)
+                        }
+                    }
                 }
+                if !store.settings.collections.isEmpty { Divider() }
                 ForEach(store.settings.collections) { collection in
                     Button(collection.name) { model.services.dockController.addWidget(.quickLaunch, collection: collection.id) }
                 }
@@ -490,6 +515,7 @@ private struct NotificationsPane: View {
                 Toggle(tr("settings.notifications.attention", "Approvals and questions (recommended)"), isOn: setting(store, \.notifications.attention))
                 Toggle(tr("settings.notifications.failures", "Failed turns"), isOn: setting(store, \.notifications.failures))
                 Toggle(tr("settings.notifications.completions", "Finished turns"), isOn: setting(store, \.notifications.completions))
+                Toggle(tr("settings.notifications.usage", "Claude usage limits at 80% and 95%"), isOn: setting(store, \.notifications.usageLimits))
                 Toggle(tr("settings.notifications.sound", "Play a sound"), isOn: setting(store, \.notifications.playSound))
                 Text(tr("settings.notifications.grouping", "Requests that arrive together are grouped into a single notification."))
                     .font(.callout).foregroundStyle(.secondary)

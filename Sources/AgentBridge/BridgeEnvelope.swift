@@ -65,6 +65,8 @@ public struct BridgeEnvelope: Codable, Sendable, Hashable {
         case hook
         /// Codex `notify` program invocation.
         case notify
+        /// Claude Code status line input: usage numbers only (`StatusLineSanitizer`).
+        case statusLine = "status_line"
         /// Developer and diagnostics messages (self-test, fixtures).
         case control
     }

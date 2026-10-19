@@ -2,6 +2,22 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>calendar.inMinutes</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@count@</string>
+		<key>count</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>ld</string>
+			<key>one</key>
+			<string>In %ld minute</string>
+			<key>other</key>
+			<string>In %ld minutes</string>
+		</dict>
+	</dict>
 	<key>card.subagents.running</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>
@@ -82,6 +98,86 @@
 			<string>%ld sessions, all quiet</string>
 		</dict>
 	</dict>
+	<key>cinema.queueCount</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@count@</string>
+		<key>count</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>ld</string>
+			<key>one</key>
+			<string>%ld more in queue</string>
+			<key>other</key>
+			<string>%ld more in queue</string>
+		</dict>
+	</dict>
+	<key>clipboard.count</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@count@</string>
+		<key>count</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>ld</string>
+			<key>one</key>
+			<string>%ld item</string>
+			<key>other</key>
+			<string>%ld items</string>
+		</dict>
+	</dict>
+	<key>countdown.accessibility</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@count@</string>
+		<key>count</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>ld</string>
+			<key>one</key>
+			<string>%ld day left</string>
+			<key>other</key>
+			<string>%ld days left</string>
+		</dict>
+	</dict>
+	<key>countdown.daysSince</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@count@</string>
+		<key>count</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>ld</string>
+			<key>one</key>
+			<string>%ld day ago</string>
+			<key>other</key>
+			<string>%ld days ago</string>
+		</dict>
+	</dict>
+	<key>countdown.daysUntil</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@count@</string>
+		<key>count</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>ld</string>
+			<key>one</key>
+			<string>%ld day to go</string>
+			<key>other</key>
+			<string>%ld days to go</string>
+		</dict>
+	</dict>
 	<key>dock.menu.windowCount</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>
@@ -96,6 +192,54 @@
 			<string>%ld window on screen</string>
 			<key>other</key>
 			<string>%ld windows on screen</string>
+		</dict>
+	</dict>
+	<key>files.newCount</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@count@</string>
+		<key>count</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>ld</string>
+			<key>one</key>
+			<string>%ld new item</string>
+			<key>other</key>
+			<string>%ld new items</string>
+		</dict>
+	</dict>
+	<key>heartbeat.caption.perMinute</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@count@</string>
+		<key>count</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>ld</string>
+			<key>one</key>
+			<string>%ld event/min</string>
+			<key>other</key>
+			<string>%ld events/min</string>
+		</dict>
+	</dict>
+	<key>heartbeat.events</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@count@</string>
+		<key>count</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>ld</string>
+			<key>one</key>
+			<string>%ld event</string>
+			<key>other</key>
+			<string>%ld events</string>
 		</dict>
 	</dict>
 	<key>island.accessibility.compact</key>
@@ -162,7 +306,7 @@
 			<string>%ld agents need you</string>
 		</dict>
 	</dict>
-	<key>onboarding.mode.imported</key>
+	<key>onboarding.mode.importedPersonal</key>
 	<dict>
 		<key>NSStringLocalizedFormatKey</key>
 		<string>%#@count@</string>
@@ -173,9 +317,41 @@
 			<key>NSStringFormatValueTypeKey</key>
 			<string>ld</string>
 			<key>one</key>
-			<string>%ld app imported from your macOS Dock into the Development workspace.</string>
+			<string>%ld app from your macOS Dock is in the Personal workspace; Development has your terminal, editor and Claude.</string>
 			<key>other</key>
-			<string>%ld apps imported from your macOS Dock into the Development workspace.</string>
+			<string>%ld apps from your macOS Dock are in the Personal workspace; Development has your terminal, editor and Claude.</string>
+		</dict>
+	</dict>
+	<key>pomodoro.doneToday</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@count@</string>
+		<key>count</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>ld</string>
+			<key>one</key>
+			<string>%ld focus session today</string>
+			<key>other</key>
+			<string>%ld focus sessions today</string>
+		</dict>
+	</dict>
+	<key>reminders.dueCount</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@count@</string>
+		<key>count</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>ld</string>
+			<key>one</key>
+			<string>%ld due today</string>
+			<key>other</key>
+			<string>%ld due today</string>
 		</dict>
 	</dict>
 	<key>settings.privacy.retention</key>
@@ -192,6 +368,38 @@
 			<string>Delete history after %ld day</string>
 			<key>other</key>
 			<string>Delete history after %ld days</string>
+		</dict>
+	</dict>
+	<key>shelf.count</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@count@</string>
+		<key>count</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>ld</string>
+			<key>one</key>
+			<string>%ld item</string>
+			<key>other</key>
+			<string>%ld items</string>
+		</dict>
+	</dict>
+	<key>timer.minutes</key>
+	<dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@count@</string>
+		<key>count</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>ld</string>
+			<key>one</key>
+			<string>%ld minute</string>
+			<key>other</key>
+			<string>%ld minutes</string>
 		</dict>
 	</dict>
 </dict>

@@ -54,5 +54,6 @@ let package = Package(
         .testTarget(name: "CodexAdapterTests", dependencies: ["CodexAdapter", "AdapterSupport", "AgentBridge", "AgentCore"]),
         .testTarget(name: "PersistenceTests", dependencies: ["Persistence", "AgentCore"]),
         .testTarget(name: "DockRenderingTests", dependencies: ["DockRendering"]),
+        .testTarget(name: "WidgetCoreTests", dependencies: ["WidgetCore"]),
     ]
 )

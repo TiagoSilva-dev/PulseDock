@@ -15,6 +15,8 @@ final class DockController: DockInteractionDelegate {
     var onIslandClick: (CGRect) -> Void = { _ in }
     var onIslandHover: (Bool, CGRect) -> Void = { _, _ in }
     var onWidgetClick: (WidgetPlacement, CGRect) -> Void = { _, _ in }
+    var widgetAcceptsDrop: (WidgetPlacement, NSPasteboard) -> Bool = { _, _ in false }
+    var widgetPerformDrop: (WidgetPlacement, NSPasteboard) -> Bool = { _, _ in false }
     var islandMenu: (NSMenu) -> Void = { _ in }
     var openSettings: () -> Void = {}
     var openMissionControl: () -> Void = {}
@@ -114,6 +116,14 @@ final class DockController: DockInteractionDelegate {
             }
         }
         model.rebuild()
+    }
+
+    func dockWidgetAcceptsDrop(_ placement: WidgetPlacement, pasteboard: NSPasteboard) -> Bool {
+        widgetAcceptsDrop(placement, pasteboard)
+    }
+
+    func dockWidgetDrop(_ placement: WidgetPlacement, pasteboard: NSPasteboard) -> Bool {
+        widgetPerformDrop(placement, pasteboard)
     }
 
     func dockDrop(urls: [URL], onto entry: DockEntry?, insertionIndex: Int?) -> Bool {
@@ -288,9 +298,17 @@ final class DockController: DockInteractionDelegate {
             }
         }
         menu.addSubmenu(tr("dock.menu.addWidget", "Add Widget"), symbol: "plus.rectangle.on.rectangle") { submenu in
-            for kind in WidgetKind.allCases where kind != .quickLaunch {
-                submenu.add(kind.displayName) { [weak self] in self?.addWidget(kind) }
+            for category in WidgetCategory.allCases {
+                let kinds = WidgetKind.addable.filter { $0.category == category }
+                guard !kinds.isEmpty else { continue }
+                submenu.addSubmenu(category.displayName, symbol: category.symbol) { group in
+                    for kind in kinds {
+                        let item = group.add(kind.displayName, symbol: kind.symbol) { [weak self] in self?.addWidget(kind) }
+                        item.toolTip = kind.summary
+                    }
+                }
             }
+            if !current.collections.isEmpty { submenu.addSeparator() }
             for collection in current.collections {
                 submenu.add(collection.name, symbol: collection.symbol) { [weak self] in self?.addWidget(.quickLaunch, collection: collection.id) }
             }
@@ -368,17 +386,6 @@ extension ThemeID {
         case .nativeGlass: tr("theme.nativeGlass", "Native Glass")
         case .midnight: tr("theme.midnight", "Midnight")
         case .aurora: tr("theme.aurora", "Aurora")
-        }
-    }
-}
-
-extension WidgetKind {
-    var displayName: String {
-        switch self {
-        case .clock: tr("widget.clock", "Clock")
-        case .systemHealth: tr("widget.systemHealth", "System Health")
-        case .nowPlaying: tr("widget.nowPlaying", "Now Playing")
-        case .quickLaunch: tr("widget.quickLaunch", "Quick Launch")
         }
     }
 }

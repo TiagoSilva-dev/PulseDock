@@ -10,6 +10,8 @@ protocol DockInteractionDelegate: AnyObject {
     func dockCommitReorder(entryID: String, toIndex: Int)
     func dockRemove(entryID: String)
     func dockDrop(urls: [URL], onto entry: DockEntry?, insertionIndex: Int?) -> Bool
+    func dockWidgetAcceptsDrop(_ placement: WidgetPlacement, pasteboard: NSPasteboard) -> Bool
+    func dockWidgetDrop(_ placement: WidgetPlacement, pasteboard: NSPasteboard) -> Bool
     func dockHoverChanged(_ entry: DockEntry?)
 }
 
@@ -40,7 +42,7 @@ final class DockHostView: NSView {
         hosting.translatesAutoresizingMaskIntoConstraints = true
         hosting.autoresizingMask = [.width, .height]
         addSubview(hosting)
-        registerForDraggedTypes([.fileURL])
+        registerForDraggedTypes([.fileURL, .URL, .string])
         setAccessibilityElement(false)
     }
 
@@ -166,8 +168,20 @@ final class DockHostView: NSView {
         (info.draggingPasteboard.readObjects(forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true]) as? [URL]) ?? []
     }
 
+    /// A widget under the pointer that takes this drop (AirDrop, Shelf, Dock Cinema, Note).
+    private func widgetTarget(_ info: NSDraggingInfo, at point: CGPoint) -> (DockEntry, WidgetPlacement)? {
+        guard let entry = model.entry(at: point), case let .widget(placement) = entry.kind, placement.kind.acceptsDrops,
+              delegate?.dockWidgetAcceptsDrop(placement, pasteboard: info.draggingPasteboard) == true else { return nil }
+        return (entry, placement)
+    }
+
     private func evaluate(_ info: NSDraggingInfo) -> NSDragOperation {
         let point = convert(info.draggingLocation, from: nil)
+        if let (entry, _) = widgetTarget(info, at: point) {
+            pointerChanged(point)
+            model.updateDrag(DockDragState(source: .external(acceptsPinning: false), location: point, insertionIndex: nil, targetEntryID: entry.id))
+            return .copy
+        }
         let urls = fileURLs(info)
         guard !urls.isEmpty else { return [] }
         pointerChanged(point)
@@ -204,6 +218,11 @@ final class DockHostView: NSView {
     }
 
     override func performDragOperation(_ sender: NSDraggingInfo) -> Bool {
+        let point = convert(sender.draggingLocation, from: nil)
+        if let (_, placement) = widgetTarget(sender, at: point) {
+            model.updateDrag(nil)
+            return delegate?.dockWidgetDrop(placement, pasteboard: sender.draggingPasteboard) ?? false
+        }
         let state = model.drag
         let urls = fileURLs(sender)
         let target = state?.targetEntryID.flatMap { id in model.displayEntries.first { $0.id == id } }

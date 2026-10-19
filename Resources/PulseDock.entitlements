@@ -5,5 +5,8 @@
 	<!-- Hardened runtime: Apple Events require an explicit entitlement and per-target user consent. -->
 	<key>com.apple.security.automation.apple-events</key>
 	<true/>
+	<!-- Calendar and Reminders widgets (EventKit); macOS still asks the user. -->
+	<key>com.apple.security.personal-information.calendars</key>
+	<true/>
 </dict>
 </plist>

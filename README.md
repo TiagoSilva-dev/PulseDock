@@ -16,7 +16,13 @@ Code e Codex trabalhando, esperando você, terminando ou falhando. Um clique lev
 
 - **Dock completo**: apps fixados e em execução, abrir e alternar, arrastar para reordenar ou remover, soltar
   arquivos, menu contextual nativo, magnificação orgânica com alvo de clique estável, auto-hide, vários
-  monitores, Lixo e widgets (Relógio, Saúde do Sistema, Tocando Agora, Quick Launch).
+  monitores e Lixo. O dock encolhe os ícones para caber na tela.
+- **28 widgets**: Calendário, Lembretes, Clima, Timer, Pomodoro, Cronômetro, Contagem regressiva, Nota,
+  Atalhos, Água, Downloads, Prateleira, AirDrop, Capturas de tela, Área de transferência, Conta-gotas,
+  Emoji, Conversor, Rede, Bateria e mais. Os originais:
+  - **Dock Cinema**: YouTube num player flutuante que **pausa sozinho quando um agente precisa de você**.
+  - **Agent Heartbeat**: um ECG ao vivo dos seus agentes e o resultado dos últimos testes que eles rodaram.
+  - **Pulse Buddy**: um companheiro que reage ao que os agentes estão fazendo.
 - **Pulse Glass**: Liquid Glass no macOS 26+, com material nativo equivalente no macOS 15. Temas Native Glass,
   Midnight e Aurora.
 - **Ambientes**: Desenvolvimento, Criativo, Pessoal e Foco, cada um com apps, tema, widgets e filtro de IA
@@ -51,7 +57,7 @@ scripts/benchmark.sh release 30            # CPU, memória, abertura, pipeline
 scripts/package.sh                         # ZIP + DMG em build/dist (assina/notariza com credenciais)
 ```
 
-Na primeira abertura, o onboarding importa os apps do seu Dock do macOS para o ambiente Desenvolvimento.
+Na primeira abertura, o ambiente Desenvolvimento traz Apps, Terminal, seu editor (VS Code) e o Claude, com Saúde do Sistema e Tocando Agora; os apps do seu Dock do macOS vão para o ambiente Pessoal.
 O PulseDock começa em **Companion Mode** (ao lado do Dock do macOS, sem alterar nada no sistema).
 
 ## Conectar os agentes

@@ -58,14 +58,44 @@ final class DockModel {
 
     var appearance: AppearanceSettings { settings.settings.appearance }
 
-    var metrics: DockMetrics {
+    var metrics: DockMetrics { makeMetrics(iconSize: fittedIconSize ?? appearance.iconSize) }
+
+    /// Smaller icon size used when the configured size would make the bar wider than the
+    /// screen (as the macOS Dock does); nil when everything fits.
+    private(set) var fittedIconSize: Double?
+
+    private func makeMetrics(iconSize: Double) -> DockMetrics {
         var metrics = DockMetrics(
-            iconSize: appearance.iconSize,
+            iconSize: iconSize,
             bottomMargin: settings.settings.behavior.bottomMargin,
             maxMagnification: appearance.magnificationEnabled ? appearance.maxMagnification : 1
         )
         metrics.spacing = (metrics.spacing * appearance.spacing.multiplier).rounded()
         return metrics
+    }
+
+    /// Keeps the whole bar on screen. The Agent Pulse island keeps its width; everything
+    /// else scales with the icon size.
+    private func updateFit() {
+        guard containerSize.width > 0 else {
+            fittedIconSize = nil
+            return
+        }
+        let configured = appearance.iconSize
+        let available = containerSize.width - DockMetrics.screenEdgeInset * 2
+        var size = configured
+        for _ in 0..<3 {
+            let candidate = makeMetrics(iconSize: size)
+            let specs = slotSpecs(metrics: candidate)
+            let island = specs.filter { $0.id == "agentPulse" }.reduce(0) { $0 + $1.baseWidth }
+            let needed = specs.reduce(0) { $0 + $1.baseWidth } + candidate.horizontalPadding * 2
+            guard needed > available else { break }
+            let scale = (available - island) / max(1, needed - island)
+            size = max(DockMetrics.minimumFittedIconSize, (size * scale).rounded(.down))
+            if size == DockMetrics.minimumFittedIconSize { break }
+        }
+        let fitted = size < configured ? size : nil
+        if fitted != fittedIconSize { fittedIconSize = fitted }
     }
 
     var theme: Theme { Theme.theme(for: settings.settings.effectiveTheme) }
@@ -96,7 +126,15 @@ final class DockModel {
         }
 
         if workspace.showRunningApps {
-            for app in runningApps.applications where !workspace.pinned.contains(where: { $0.matches(bundleIdentifier: app.bundleIdentifier, url: app.bundleURL) }) {
+            let unpinned = runningApps.applications.filter { app in
+                !workspace.pinned.contains(where: { $0.matches(bundleIdentifier: app.bundleIdentifier, url: app.bundleURL) })
+            }
+            // Like the macOS Dock: open-but-not-kept apps sit after a divider, so the pinned set
+            // reads as the workspace's own apps.
+            if !result.isEmpty, !unpinned.isEmpty {
+                result.append(DockEntry(id: "divider:running", kind: .divider, title: ""))
+            }
+            for app in unpinned {
                 let key = app.bundleIdentifier ?? app.bundleURL?.path ?? "pid-\(app.pid)"
                 result.append(DockEntry(id: "running:\(key)", kind: .application(pinned: nil, running: app), title: app.name, url: app.bundleURL))
             }
@@ -121,13 +159,10 @@ final class DockModel {
     }
 
     private func widgetTitle(_ placement: WidgetPlacement) -> String {
-        switch placement.kind {
-        case .clock: tr("widget.clock", "Clock")
-        case .systemHealth: tr("widget.systemHealth", "System Health")
-        case .nowPlaying: tr("widget.nowPlaying", "Now Playing")
-        case .quickLaunch:
-            settings.settings.collections.first { $0.id == placement.collectionID }?.name ?? tr("widget.quickLaunch", "Quick Launch")
+        if placement.kind == .quickLaunch {
+            return settings.settings.collections.first { $0.id == placement.collectionID }?.name ?? tr("widget.quickLaunch", "Quick Launch")
         }
+        return placement.kind.displayName
     }
 
     private func applyEntries(_ newEntries: [DockEntry]) {
@@ -189,10 +224,12 @@ final class DockModel {
         let position: Int
         if reorderable.isEmpty {
             position = 0
-        } else if index >= reorderable.count {
-            position = reorderable[reorderable.count - 1] + 1
+        } else if index <= 0 {
+            position = reorderable[0]
         } else {
-            position = reorderable[max(0, index)]
+            // Right after the previous item, so a gap at the end of the pinned apps stays
+            // before the divider of the open apps.
+            position = reorderable[min(index, reorderable.count) - 1] + 1
         }
         result.insert(DockEntry(id: "placeholder-\(index)", kind: .placeholder, title: ""), at: min(position, result.count))
         return result
@@ -209,8 +246,8 @@ final class DockModel {
         recomputeLayout()
     }
 
-    private func slotSpecs() -> [DockSlotSpec] {
-        let metrics = metrics
+    private func slotSpecs(metrics: DockMetrics? = nil) -> [DockSlotSpec] {
+        let metrics = metrics ?? self.metrics
         return displayEntries.map { entry in
             let factor = presence[entry.id] ?? presenceValues[entry.id]?.value ?? 1
             let width: Double
@@ -225,16 +262,12 @@ final class DockModel {
     }
 
     func widgetWidth(_ kind: WidgetKind, metrics: DockMetrics) -> Double {
-        switch kind {
-        case .clock: (metrics.iconSize * 1.18).rounded()
-        case .systemHealth: (metrics.iconSize * 1.3).rounded()
-        case .nowPlaying: (metrics.iconSize * 2.9).rounded()
-        case .quickLaunch: metrics.iconSize
-        }
+        (metrics.iconSize * kind.width.factor).rounded()
     }
 
     private func recomputeLayout() {
         for (id, value) in presenceValues { presence[id] = value.value }
+        updateFit()
         let metrics = metrics
         let specs = slotSpecs()
         let total = specs.reduce(0) { $0 + $1.baseWidth }

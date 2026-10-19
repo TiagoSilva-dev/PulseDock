@@ -91,6 +91,10 @@ Cada item segue o formato: comportamento → fonte → hipótese → confiança 
   permissão) para informação e Apple Events só para os controles, com aviso contextual. Nada de helper
   privilegiado.
 
+- **Atualização (2026-10-19)**: o PulseDock passou a ter 28 tipos de widget, cobrindo 25 dos 31 do PrimoDock
+  com APIs públicas, mais três originais (Dock Cinema, Agent Heartbeat, Pulse Buddy). Decisões, exclusões e
+  permissões no ADR 0010.
+
 ### 2.6 O widget de IA do PrimoDock mede quota, não estado de agentes
 - **Observado**: "Uso do Claude: quanto do seu plano do Claude já foi, e quando ele zera". Não há menção a
   sessões, ferramentas, permissões ou subagentes.
@@ -98,6 +102,9 @@ Cada item segue o formato: comportamento → fonte → hipótese → confiança 
 - **Oportunidade PulseDock**: este é o diferencial central. O PulseDock acompanha estado observável de sessões
   (trabalhando, aguardando você, falha, concluído, desatualizado) a partir de eventos oficiais, com retorno à
   sessão de origem. Não há concorrência direta nesse ponto dentro de um dock.
+- **Atualização (2026-10-19)**: o PulseDock também tem **Uso do Claude** (limites de 5 h e semanal com
+  renovação, custo estimado do dia, contexto por sessão), lido da status line oficial do Claude Code, sem
+  credenciais, e com projeção de esgotamento e avisos em 80%/95%, que o PrimoDock não anuncia.
 
 ### 2.7 Temas
 - **Observado**: Native ("o vidro do macOS"), Midnight ("vidro escuro… borda clara"), Rocket, Aqua Shelf, Neon,

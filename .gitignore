@@ -17,3 +17,7 @@ DerivedData/
 .vscode/
 .idea/
 *.swp
+
+# Python
+__pycache__/
+*.pyc

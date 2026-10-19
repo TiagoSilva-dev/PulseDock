@@ -26,6 +26,8 @@ public enum BridgePaths {
 
     /// Privacy options the helper reads before sanitizing (written by the app).
     public static var helperConfig: URL { supportDirectory.appendingPathComponent("helper-config.json") }
+    /// The user's own Claude Code status line, kept running behind PulseDock's.
+    public static var statusLineChain: URL { supportDirectory.appendingPathComponent("claude-statusline-chain.json") }
 
     public static var spool: URL { runDirectory.appendingPathComponent("spool.jsonl") }
 

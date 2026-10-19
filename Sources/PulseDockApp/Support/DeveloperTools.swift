@@ -40,6 +40,41 @@ enum DeveloperTools {
             case "dark": NSApp.appearance = NSAppearance(named: .darkAqua)
             default: NSApp.appearance = nil
             }
+        case "widget":
+            // Visual review: `widget add=calendar`, `widget open=calendar`, `widget remove=calendar`,
+            // `widget close`, `widget cinema=<YouTube link>`.
+            if let raw = payload["add"]?.stringValue {
+                for name in raw.split(separator: ",") {
+                    if let kind = WidgetKind(rawValue: String(name)) { services.dockController.addWidget(kind) }
+                }
+            }
+            if let raw = payload["remove"]?.stringValue {
+                let kinds = Set(raw.split(separator: ",").compactMap { WidgetKind(rawValue: String($0)) })
+                services.settings.update { $0.updateActiveWorkspace { $0.widgets.removeAll { kinds.contains($0.kind) } } }
+                services.dockModel.rebuild()
+            }
+            if let name = payload["open"]?.stringValue, let kind = WidgetKind(rawValue: name),
+               let placement = services.settings.activeWorkspace.widgets.first(where: { $0.kind == kind }),
+               let frame = services.dockWindow.screenFrame(ofEntry: "widget:\(placement.id.uuidString)") {
+                services.widgets.showPanel(for: placement, anchor: frame)
+            }
+            if let link = payload["cinema"]?.stringValue {
+                services.widgets.cinema.startsMuted = payload["muted"]?.stringValue != "false"
+                services.widgets.cinema.add(link: link, playNow: true)
+            }
+            services.widgets.updateVisibility()
+        case "workspace":
+            // `workspace restore=development`: the same action as Settings › Restore.
+            if let raw = payload["restore"]?.stringValue, let preset = WorkspacePreset(rawValue: raw) {
+                services.settings.update { settings in
+                    for index in settings.workspaces.indices where settings.workspaces[index].preset == preset {
+                        WorkspaceDefaults.restore(&settings.workspaces[index])
+                    }
+                }
+            }
+        case "browser":
+            // `browser detect`: runs Dock Cinema's browser detection now (when enabled).
+            services.widgets.cinema.browser.detect(userInitiated: true)
         case "sleep":
             // Runs the same handlers as NSWorkspace's sleep/wake notifications.
             services.systemWillSleep()

@@ -14,6 +14,7 @@ import Foundation
 //   pulsedockctl notify '<codex notify json>'
 //   pulsedockctl replay <file.jsonl> [--speed 2]
 //   pulsedockctl claude-hooks status|install|uninstall
+//   pulsedockctl claude-statusline status|preview|install|uninstall   (Claude Usage widget)
 //   pulsedockctl uninstall-hooks            (Claude Code + Codex hooks + Codex notify)
 //
 // Replay files contain one object per line: {"delay": 0.5, "source": "claude-code", "payload": {…}}
@@ -117,6 +118,28 @@ case "replay":
         let name = (payload as? [String: Any])?["hook_event_name"] as? String ?? "?"
         print("[\(sent)] \(name): \(describe(outcome))")
     }
+
+case "claude-statusline":
+    // Same installer as Settings › AI Agents › Claude usage: preview, backup, validation.
+    let installation = ClaudeCodeDetector.detect()
+    let installer = ClaudeStatusLineInstaller(settingsURL: installation.settingsURL)
+    do {
+        switch arguments.dropFirst().first ?? "status" {
+        case "preview":
+            let plan = try installer.planInstall()
+            print(plan.change.previewLines.filter { $0.hasPrefix("+") || $0.hasPrefix("-") }.joined(separator: "\n"))
+        case "install":
+            let plan = try installer.planInstall()
+            let backup = try installer.apply(plan)
+            print("status line installed\(plan.chained == nil ? "" : " (your own status line is chained)"); backup: \(backup?.path ?? "none")")
+        case "uninstall":
+            let plan = try installer.planUninstall()
+            let backup = try installer.apply(plan)
+            print("status line removed\(plan.change.preservedForeignHandlers > 0 ? " (your own status line restored)" : ""); backup: \(backup?.path ?? "none")")
+        default:
+            print(installer.status())
+        }
+    } catch { fail("claude-statusline failed: \(error)") }
 
 case "claude-hooks":
     // pulsedockctl claude-hooks status|install|uninstall   (same installer as the app: backup + validation)

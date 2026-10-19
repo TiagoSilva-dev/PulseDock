@@ -6,26 +6,6 @@ import WidgetCore
 
 // MARK: - Compact tiles (inside the dock)
 
-struct ClockTile: View {
-    let clock: ClockProvider
-    let theme: Theme
-
-    var body: some View {
-        VStack(spacing: 1) {
-            Text(clock.now, format: .dateTime.hour().minute())
-                .font(.system(size: 14.5, weight: .semibold, design: .rounded))
-                .monospacedDigit()
-            Text(clock.now, format: .dateTime.weekday(.abbreviated).day())
-                .font(.system(size: 10, weight: .medium))
-                .foregroundStyle(.secondary)
-                .textCase(.uppercase)
-        }
-        .foregroundStyle(theme.labelText)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .accessibilityElement(children: .combine)
-    }
-}
-
 struct SystemHealthTile: View {
     let health: SystemHealthProvider
     let theme: Theme
@@ -56,6 +36,8 @@ struct SystemHealthTile: View {
             Text(label)
                 .font(.system(size: 7.5, weight: .bold, design: .rounded))
                 .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .fixedSize()
         }
     }
 }
@@ -112,28 +94,6 @@ struct WidgetPanelContainer<Content: View>: View {
             PulseGlassSurface(theme: theme, cornerRadius: PanelMetrics.cornerRadius, accessibility: accessibility, legibility: .content)
         }
         .environment(\.colorScheme, theme.forcedColorScheme ?? (NSApp.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua ? .dark : .light))
-    }
-}
-
-struct ClockPanel: View {
-    let clock: ClockProvider
-    let theme: Theme
-    let accessibility: AccessibilityOptions
-
-    var body: some View {
-        WidgetPanelContainer(theme: theme, accessibility: accessibility, title: tr("widget.clock", "Clock")) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(clock.now, format: .dateTime.hour().minute().second())
-                    .font(.system(size: 34, weight: .semibold, design: .rounded))
-                    .monospacedDigit()
-                Text(clock.now, format: .dateTime.weekday(.wide).day().month(.wide).year())
-                    .font(PulseTypography.panelBody)
-                    .foregroundStyle(.secondary)
-            }
-            MonthGrid(date: clock.now, theme: theme)
-        }
-        .onAppear { clock.showsSeconds = true }
-        .onDisappear { clock.showsSeconds = false }
     }
 }
 

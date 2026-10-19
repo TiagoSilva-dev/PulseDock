@@ -39,6 +39,11 @@ public nonisolated struct DockMetrics: Sendable, Equatable {
     public var barHeight: Double { iconSize + verticalPadding * 2 }
     /// Width of one icon slot in base coordinates.
     public var slotWidth: Double { iconSize + spacing }
+
+    /// Space kept between the bar and the screen edges when the dock has to shrink to fit.
+    public static let screenEdgeInset: Double = 24
+    /// Icons never shrink below this size to fit; past it the bar may exceed the screen.
+    public static let minimumFittedIconSize: Double = 24
     public var dividerSlotWidth: Double { spacing + dividerWidth }
 
     public var magnificationParameters: MagnificationParameters {

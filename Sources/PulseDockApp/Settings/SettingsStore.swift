@@ -106,8 +106,9 @@ final class SettingsStore {
     }
 }
 
-/// First-run workspaces. Development starts from the user's macOS Dock; the others only
-/// contain apps that are actually installed.
+/// First-run workspaces. Development is a focused coding set (apps launcher, terminal, editor,
+/// Claude, resource usage and music); Personal starts from the user's macOS Dock; the others
+/// only contain apps that are actually installed.
 enum WorkspaceDefaults {
     static let creativeBundleIDs = [
         "com.figma.Desktop", "com.bohemiancoding.sketch3", "com.pixelmatorteam.pixelmator.x", "com.seriflabs.affinitydesigner2",
@@ -118,43 +119,67 @@ enum WorkspaceDefaults {
         "com.apple.Music", "com.spotify.client", "com.apple.Photos", "com.apple.MobileSMS", "com.apple.mail", "com.apple.iCal",
         "com.apple.Notes", "com.apple.Safari", "com.apple.TV", "com.apple.podcasts",
     ]
-    static let developerBundleIDs: Set<String> = [
-        "com.apple.Terminal", "com.googlecode.iterm2", "dev.warp.Warp-Stable", "com.mitchellh.ghostty", "com.microsoft.VSCode",
-        "com.todesktop.230313mzl4w4u92", "dev.zed.Zed", "com.apple.dt.Xcode", "com.jetbrains.intellij", "com.anthropic.claudefordesktop",
-    ]
+    /// The apps launcher: Apps on macOS 26 and later, Launchpad before.
+    static let launcherBundleIDs = ["com.apple.apps.launcher", "com.apple.launchpad.launcher"]
+    /// Terminal is always installed; the others are only used when Terminal is missing.
+    static let terminalBundleIDs = ["com.apple.Terminal", "com.googlecode.iterm2", "com.mitchellh.ghostty", "dev.warp.Warp-Stable"]
+    /// VS Code first, then other editors.
+    static let editorBundleIDs = ["com.microsoft.VSCode", "com.todesktop.230313mzl4w4u92", "dev.zed.Zed", "com.apple.dt.Xcode", "com.jetbrains.intellij"]
+    static let claudeBundleID = "com.anthropic.claudefordesktop"
+
+    static var finder: PinnedItem {
+        PinnedItem.application(bundleIdentifier: "com.apple.finder", url: URL(fileURLWithPath: "/System/Library/CoreServices/Finder.app"))
+    }
 
     static func make() -> [Workspace] {
-        let finder = PinnedItem.application(bundleIdentifier: "com.apple.finder", url: URL(fileURLWithPath: "/System/Library/CoreServices/Finder.app"))
-        var development = SystemDockImporter.persistentApps().map { PinnedItem.application(bundleIdentifier: $0.bundleIdentifier, url: $0.url) }
-        if !development.contains(where: { $0.bundleIdentifier == "com.apple.finder" }) {
-            development.insert(finder, at: 0)
-        }
-        if development.count <= 1 {
-            development += installed(["com.apple.Safari", "com.apple.Terminal", "com.apple.dt.Xcode", "com.microsoft.VSCode"])
-        }
-        let focusApps = [finder] + development.filter { item in
-            guard let id = item.bundleIdentifier else { return false }
-            return developerBundleIDs.contains(id)
-        }.prefix(4)
+        WorkspacePreset.allCases.map(workspace)
+    }
 
-        return [
-            Workspace(name: tr("workspace.development", "Development"), symbol: "chevron.left.forwardslash.chevron.right",
-                      pinned: development, theme: nil,
-                      widgets: [WidgetPlacement(kind: .systemHealth), WidgetPlacement(kind: .clock)],
-                      showRunningApps: true, agentFilter: .all, preset: .development),
-            Workspace(name: tr("workspace.creative", "Creative"), symbol: "paintpalette",
-                      pinned: [finder] + installed(creativeBundleIDs), theme: .aurora,
-                      widgets: [WidgetPlacement(kind: .nowPlaying), WidgetPlacement(kind: .clock)],
-                      showRunningApps: true, agentFilter: .all, preset: .creative),
-            Workspace(name: tr("workspace.personal", "Personal"), symbol: "house",
-                      pinned: [finder] + installed(personalBundleIDs), theme: nil,
-                      widgets: [WidgetPlacement(kind: .nowPlaying), WidgetPlacement(kind: .clock)],
-                      showRunningApps: true, agentFilter: .all, preset: .personal),
-            Workspace(name: tr("workspace.focus", "Focus"), symbol: "scope",
-                      pinned: Array(focusApps), theme: .midnight,
-                      widgets: [WidgetPlacement(kind: .clock)],
-                      showRunningApps: false, agentFilter: .attentionOnly, preset: .focus),
-        ]
+    /// A fresh workspace for the preset (also used by "Restore Defaults").
+    static func workspace(_ preset: WorkspacePreset) -> Workspace {
+        switch preset {
+        case .development:
+            let pinned = firstInstalled(launcherBundleIDs) + firstInstalled(terminalBundleIDs) + firstInstalled(editorBundleIDs) + installed([claudeBundleID])
+            return Workspace(name: preset.localizedName, symbol: "chevron.left.forwardslash.chevron.right",
+                             pinned: pinned, theme: nil,
+                             widgets: [WidgetPlacement(kind: .systemHealth), WidgetPlacement(kind: .nowPlaying)],
+                             showRunningApps: true, agentFilter: .all, preset: preset)
+        case .creative:
+            return Workspace(name: preset.localizedName, symbol: "paintpalette",
+                             pinned: [finder] + installed(creativeBundleIDs), theme: .aurora,
+                             widgets: [WidgetPlacement(kind: .nowPlaying), WidgetPlacement(kind: .clock)],
+                             showRunningApps: true, agentFilter: .all, preset: preset)
+        case .personal:
+            var pinned = SystemDockImporter.persistentApps().map { PinnedItem.application(bundleIdentifier: $0.bundleIdentifier, url: $0.url) }
+            if !pinned.contains(where: { $0.bundleIdentifier == "com.apple.finder" }) { pinned.insert(finder, at: 0) }
+            if pinned.count <= 1 { pinned += installed(personalBundleIDs) }
+            return Workspace(name: preset.localizedName, symbol: "house",
+                             pinned: pinned, theme: nil,
+                             widgets: [WidgetPlacement(kind: .nowPlaying), WidgetPlacement(kind: .clock)],
+                             showRunningApps: true, agentFilter: .all, preset: preset)
+        case .focus:
+            return Workspace(name: preset.localizedName, symbol: "scope",
+                             pinned: [finder] + firstInstalled(terminalBundleIDs) + firstInstalled(editorBundleIDs), theme: .midnight,
+                             widgets: [WidgetPlacement(kind: .clock)],
+                             showRunningApps: false, agentFilter: .attentionOnly, preset: preset)
+        }
+    }
+
+    /// Puts the preset's apps, widgets and display options back, keeping the workspace's
+    /// identity and the name the user gave it.
+    static func restore(_ workspace: inout Workspace) {
+        guard let preset = workspace.preset else { return }
+        let fresh = Self.workspace(preset)
+        workspace.pinned = fresh.pinned
+        workspace.widgets = fresh.widgets
+        workspace.theme = fresh.theme
+        workspace.showRunningApps = fresh.showRunningApps
+        workspace.agentFilter = fresh.agentFilter
+        workspace.symbol = fresh.symbol
+    }
+
+    static func firstInstalled(_ bundleIDs: [String]) -> [PinnedItem] {
+        Array(installed(bundleIDs).prefix(1))
     }
 
     static func installed(_ bundleIDs: [String]) -> [PinnedItem] {
